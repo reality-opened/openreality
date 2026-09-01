@@ -26,7 +26,13 @@ guardrails, or storage logic is duplicated here.
   `openreality-mcp simulator` fakes the whole workflow with fixture data (see
   below). It does not reconstruct anything.
 - The broker contract is plain REST, so `OPENREALITY_URL` can point at any
-  deployment that speaks it.
+  deployment that speaks it, **including your own**: the broker is open source
+  and self-hostable (your own GPU box, or your own Modal account) at
+  [openreality-server](https://github.com/reality-opened/openreality-server),
+  with the SLAM library at
+  [openreality-core](https://github.com/reality-opened/openreality-core).
+  Self-hosted stacks are non-commercial by upstream model licensing; see that
+  repo's `docs/self-hosting.md`.
 
 ## Install: Claude Code
 
