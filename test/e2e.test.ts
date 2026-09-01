@@ -89,7 +89,7 @@ beforeAll(async () => {
 afterAll(async () => {
   // the demo transcript is a repo deliverable — always write it
   const lines: string[] = [
-    '# openreality-mcp — demo transcript',
+    '# openreality-mcp demo transcript',
     '',
     'A real MCP client driving the built `openreality-mcp` server over stdio against the',
     'mock-backend simulator (`openreality-mcp simulator`): scan upload → reconstruction job →',

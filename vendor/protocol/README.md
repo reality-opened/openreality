@@ -1,4 +1,4 @@
-# vendor/protocol — `@reality/protocol` (pinned copy)
+# vendor/protocol: `@reality/protocol` (pinned copy)
 
 Vendored source copy of the Open Reality cross-repo wire contract
 (`@reality/protocol`): REST route builders, auth/token helpers, and the typed

@@ -10,12 +10,12 @@ scene agents, and pull robot-training exports (`openreality` /
 npm install -g openreality-mcp   # or run it ad hoc with npx
 ```
 
-This is a **thin typed client of the deployed broker** — the same REST contract
+This is a **thin typed client of the deployed broker**: the same REST contract
 the OS web client speaks (the vendored [`@reality/protocol`](vendor/protocol)
 is the single source of truth for routes and payload shapes). No orchestration,
 guardrails, or storage logic is duplicated here.
 
-## Install — Claude Code
+## Install: Claude Code
 
 ```bash
 claude mcp add openreality -- npx -y openreality-mcp serve
@@ -38,7 +38,7 @@ Optionally install the skill so Claude knows the workflow + honesty doctrine:
 copy `skills/openreality/` into `~/.claude/skills/` (or your project's
 `.claude/skills/`).
 
-## Install — Claude desktop
+## Install: Claude desktop
 
 Add to `claude_desktop_config.json` (Settings → Developer → Edit Config):
 
@@ -53,7 +53,7 @@ Add to `claude_desktop_config.json` (Settings → Developer → Edit Config):
 }
 ```
 
-## Install — Codex
+## Install: Codex
 
 ```bash
 codex mcp add openreality -- npx -y openreality-mcp serve
@@ -70,7 +70,7 @@ args = ["-y", "openreality-mcp", "serve"]
 
 Manage with `codex mcp list` / `codex mcp get openreality` / `codex mcp remove openreality`.
 
-## Install — Cursor
+## Install: Cursor
 
 One-click: [Add to Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=openreality&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIm9wZW5yZWFsaXR5LW1jcCIsInNlcnZlIl19)
 (the deeplink carries the base64 of the server config below).
@@ -94,18 +94,18 @@ the server picks up the stored credentials.
 ## Sign in
 
 The broker authenticates with a durable **API key** (`ork_...`, opaque,
-revocable server-side, minted once via a browser login — no expiry, no
+revocable server-side, minted once via a browser login; no expiry, no
 rolling). The older broker session-token flow (12 h, auto-rolled at half-life)
 still works as a fallback for brokers that predate API keys.
 
 ```bash
 openreality-mcp login
 # opens your browser to sign in, then mints and stores a durable ork_ API key.
-# Headless / no browser? The URL is always printed too — open it anywhere.
+# Headless / no browser? The URL is always printed too; open it anywhere.
 ```
 
 Credentials land in `~/.config/openreality/credentials.json` (0600).
-Alternatively set `OPENREALITY_TOKEN` in the environment — this also accepts an
+Alternatively set `OPENREALITY_TOKEN` in the environment; this also accepts an
 `ork_...` key directly. The broker URL defaults to the deployed app; override
 with `OPENREALITY_URL`. The browser hand-off page defaults to
 `https://open-reality.io`; override with `OPENREALITY_LOGIN_URL`.
@@ -120,28 +120,28 @@ openreality-mcp login --token <token>
 Manage keys with `openreality-mcp keys list` / `openreality-mcp keys revoke
 <key_id>`; `openreality-mcp whoami` sanity-checks the stored credential. A
 revoked or unknown key answers every request with a clear "run `login` again"
-error — it never loops retrying.
+error; it never loops retrying.
 
-## Architecture — an all-plugin [cordis](https://github.com/cordiverse/cordis) app
+## Architecture: an all-plugin [cordis](https://github.com/cordiverse/cordis) app
 
 The server is assembled from cordis plugins around two services; nothing
 registers anything globally.
 
 ```
-src/services/broker.ts   ctx.broker — resolved config + credential session + typed HTTP client
-src/services/mcp.ts      ctx.mcp    — the MCP server; effect-scoped tool/resource registration
+src/services/broker.ts   ctx.broker: resolved config + credential session + typed HTTP client
+src/services/mcp.ts      ctx.mcp:     the MCP server; effect-scoped tool/resource registration
 src/plugins/workspace.ts   workspace_* tools     (inject: ['mcp', 'broker'])
 src/plugins/scene.ts       scene_* tools
 src/plugins/agent.ts       agent_* tools
 src/plugins/export.ts      export_* / artifact_* tools
 src/plugins/resources.ts   openreality:// resources
-src/app.ts               the composition (createApp) — and nothing else
+src/app.ts               the composition (createApp), and nothing else
 ```
 
 The rules this buys, mechanically enforced by the framework:
 
 - **Registrations are reversible effects.** Every tool/resource goes through
-  `ctx.effect()` with the SDK handle's `remove()` as the disposer — disposing a
+  `ctx.effect()` with the SDK handle's `remove()` as the disposer: disposing a
   namespace fiber removes exactly its tools from the live server, remounting
   restores them (proven in `test/cordis.test.ts`).
 - **Load order is service requirements, not boot sequencing.** A tool namespace
@@ -179,7 +179,7 @@ session.
 | `export_*` / `artifact_*` | export_manifest, export_prepare, export_status, artifact_fetch, artifact_fetch_splat, artifact_fetch_cloud |
 
 Resources: `openreality://scenes` (index) and `openreality://scene/{scan_id}`
-(context card) — @-mentionable in Claude Code.
+(context card), @-mentionable in Claude Code.
 
 Design rules: artifacts are written to disk
 (`~/.config/openreality/artifacts/...`), never into context; honesty fields

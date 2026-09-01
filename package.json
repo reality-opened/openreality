@@ -1,7 +1,7 @@
 {
   "name": "openreality-mcp",
   "version": "0.3.0",
-  "description": "Open Reality OS as MCP tools \u2014 drive scan upload, reconstruction, scene query, scene agents, and robot-training exports from Claude Code, Claude desktop, Codex, or Cursor.",
+  "description": "Open Reality OS as MCP tools: drive scan upload, reconstruction, scene query, scene agents, and robot-training exports from Claude Code, Claude desktop, Codex, or Cursor.",
   "license": "BSD-2-Clause",
   "homepage": "https://open-reality.io/mcp",
   "repository": {
