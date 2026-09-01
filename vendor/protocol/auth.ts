@@ -122,7 +122,8 @@ export function getScansRemainingClaim(token: string | null): number | null {
 /** Durable API key bearer prefix (opaque, ~47 chars total, first 10 chars is the display
  *  `prefix` field). Minted once via `POST /api/keys` after a browser login; revocable
  *  server-side. Unlike a Clerk JWT or broker session token, an API key carries no `exp` —
- *  it is never rolled or refreshed (see rest.ts's API_KEYS routes + Session in apps/mcp). */
+ *  it is never rolled or refreshed (see rest.ts's API_KEYS routes + Session in the
+ *  openreality-mcp repo). */
 export const API_KEY_PREFIX = 'ork_' as const;
 
 /** True when `token` looks like a durable Open Reality API key (`ork_...`) rather than a
