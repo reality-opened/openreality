@@ -1,3 +1,9 @@
 node_modules/
 dist/
+__pycache__/
+*.pyc
+*.egg-info/
 *.tsbuildinfo
+third_party/
+.venv/
+.pytest_cache/

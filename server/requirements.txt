@@ -1,0 +1,46 @@
+# core SLAM library (the vggt_slam package). From a checkout of this monorepo,
+# `pip install -e ../core` is equivalent and skips the network fetch.
+openreality-core @ git+https://github.com/reality-opened/openreality@core-v0.1.0#subdirectory=core
+torch==2.3.1
+torchvision==0.18.1
+numpy
+Pillow
+open3d
+huggingface_hub
+einops
+safetensors
+pytorch_metric_learning
+pytorch-lightning
+termcolor
+gradio
+viser==0.2.23
+tqdm
+omegaconf
+opencv-python
+scipy
+requests
+websockets  # live-node transport: server/oreos/recordings/live_node/client.py imports it at runtime
+# Web server. These are imported at MODULE level (server/oreos/__init__.py does
+# `from flask import Blueprint`), so without them `import server.oreos` fails and CI
+# cannot even collect 14 test modules — which is what it did from 2026-08-04 until this
+# line existed. They were installed only by modal_streaming.py's image, so the deployed
+# server kept working while every CI run went red. Keep in sync with the "Streaming
+# server" block there.
+flask
+flask-cors
+python-socketio
+asgiref
+PyJWT[crypto]
+trimesh
+matplotlib
+virtualenv>=20.10.0
+lz4
+gtsam-develop
+ftfy 
+regex 
+openai>=1.30
+pydantic>=2.8
+google-genai
+usd-core  # OpenUSD (pxr) — Isaac Sim/Lab USD scene export (server/export/isaac/); authoring only, no Isaac runtime needed
+pyarrow  # pandas parquet engine — data/trajectory.parquet in every dataset export (server/export/trajectory.py)
+psycopg[binary,pool]>=3.2  # credit ledger (server/billing/) — Neon Postgres; pool for the long-lived broker, binary to avoid a libpq build

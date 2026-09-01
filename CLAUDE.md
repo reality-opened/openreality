@@ -1,35 +1,23 @@
-# CLAUDE.md - openreality-mcp
+# CLAUDE.md - openreality (public monorepo)
 
-Public repo (`reality-opened/openreality-mcp`, npm `openreality-mcp`): Open
-Reality OS as MCP tools. An **all-plugin [cordis](https://github.com/cordiverse/cordis)
-app**. Read the Architecture section of [README.md](README.md) before changing
-`src/`.
+The public release of the Open Reality stack (`reality-opened/openreality`),
+three components in one repo:
 
-## Rules
+- `mcp/`: the MCP server (npm `openreality-mcp`). Developed HERE directly; an
+  all-plugin cordis app. Read `mcp/CLAUDE.md` before changing it.
+- `server/`: curated public mirror of the private `reality-opened/server` repo.
+  Do not develop here; sync manifest + procedure in `server/MIRROR.md`.
+- `core/`: curated public mirror of the private `reality-opened/core` repo.
+  Same rule; see `core/MIRROR.md`.
 
-- **Registrations are effects.** Every tool/resource contribution goes through
-  `ctx.mcp.tool(ctx, ...)` / `ctx.mcp.resource(ctx, ...)`, which install via
-  `ctx.effect()`; disposal must unregister (proven by `test/cordis.test.ts`).
-- **Plugins, not assembly changes.** New behavior is a new plugin (named
-  exports `name` / `inject` / `apply`, no default export) or a new tool in an
-  existing namespace; `src/app.ts` stays pure composition. Service classes
-  (`src/services/`) default-export the class.
-- **The wire contract is vendored, not owned.** `vendor/protocol/` is a pinned
-  copy of the private `reality-opened/web` `packages/protocol`. Never edit it
-  here; follow the sync procedure in [vendor/protocol/README.md](vendor/protocol/README.md).
-- **Honesty doctrine passes through verbatim**: `units`, `scale_source`,
-  `provenance`, `degraded`, and typed server refusals (409/422 bodies) reach
-  the model unedited. Never soften or convert them.
-- **Artifacts go to disk, never into context**: fetch tools return paths.
-- **Persisted contracts keep historical names**: API routes, `derived/demo/*`
-  keys, and `DEMO_*` env fallbacks spell `demo` on purpose; never rename.
+Rules that span the repo:
 
-## Commands
+- Documentation uses no em dashes.
+- The self-host licensing posture (CC BY-NC backbone, fetched never vendored)
+  is stated in the root README and `server/docs/self-hosting.md`; keep both in
+  sync and never soften it.
+- CI (`.github/workflows/ci.yml`) runs all three component suites on every
+  push; keep each job equivalent to its component's standalone check.
 
-```bash
-npm install
-npm run build       # tsup → dist/cli.js (vendored protocol bundled in)
-npm run typecheck
-npm test            # build + unit/contract/lifecycle/stdio-e2e; regenerates examples/transcript.md
-npm run simulator   # mock broker on :8973 for offline development
-```
+Commands: `cd mcp && npm test`, `cd server && python -m pytest tests/`,
+`cd core && python -m compileall vggt_slam`.

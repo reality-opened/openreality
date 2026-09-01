@@ -1,0 +1,62 @@
+{
+  "name": "openreality-mcp",
+  "version": "0.3.0",
+  "description": "Open Reality OS as MCP tools: drive scan upload, reconstruction, scene query, scene agents, and robot-training exports from Claude Code, Claude desktop, Codex, or Cursor.",
+  "license": "BSD-2-Clause",
+  "homepage": "https://open-reality.io/mcp",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reality-opened/openreality.git",
+    "directory": "mcp"
+  },
+  "bugs": {
+    "url": "https://github.com/reality-opened/openreality/issues"
+  },
+  "keywords": [
+    "mcp",
+    "modelcontextprotocol",
+    "claude",
+    "codex",
+    "cursor",
+    "cordis",
+    "3d",
+    "slam",
+    "robotics",
+    "openreality"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "type": "module",
+  "bin": {
+    "openreality-mcp": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "skills",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run build && vitest run",
+    "simulator": "npm run build && node dist/cli.js simulator",
+    "prepublishOnly": "npm run typecheck && npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "cordis": "^4.0.0-rc.9",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@reality/protocol": "file:./vendor/protocol",
+    "@types/node": "^20.17.0",
+    "tsup": "^8.3.5",
+    "typescript": "6.0.3",
+    "vitest": "^2.0.0"
+  },
+  "allowScripts": {
+    "esbuild@0.27.7": true,
+    "esbuild@0.21.5": true
+  }
+}

@@ -6,11 +6,15 @@ on:
   pull_request:
 
 jobs:
-  test:
+  mcp:
+    name: "mcp (npm test, node ${{ matrix.node }})"
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node: [20, 22]
+    defaults:
+      run:
+        working-directory: mcp
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -19,3 +23,49 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
+
+  core:
+    name: "core (compile + install check)"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: core
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m compileall -q vggt_slam main.py visualize_results.py
+      - run: pip install --no-deps -e . && python -c "import vggt_slam; print(vggt_slam.__name__)"
+
+  server:
+    name: "server (pytest, Python 3.11, GPU-free)"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - name: Install system libraries
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q libgl1 libglib2.0-0
+      # The GPU-free subset sufficient for the test suite (torch/gtsam/open3d/
+      # usd-core stay out; tests that need them importorskip and count as skips).
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip wheel
+          pip install \
+            "numpy" "scipy>=1.10" "pydantic>=2.8" "pandas" "pyarrow" \
+            "opencv-python-headless" "Pillow" "PyJWT[crypto]" "requests" \
+            "websockets" "tqdm" "openai>=1.30" "lz4" "trimesh" \
+            "flask" "flask-cors" "python-socketio" "asgiref" \
+            "pytest" "pytest-asyncio"
+      - name: Install openreality-core from this checkout
+        run: pip install --no-deps -e ../core
+      - name: Run tests
+        run: python -m pytest tests/ -q

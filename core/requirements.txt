@@ -1,0 +1,32 @@
+torch==2.3.1
+torchvision==0.18.1
+numpy
+Pillow
+open3d
+huggingface_hub
+einops
+safetensors
+pytorch_metric_learning
+pytorch-lightning
+termcolor
+gradio
+viser==0.2.23
+tqdm
+omegaconf
+opencv-python
+scipy
+requests
+trimesh
+matplotlib
+virtualenv>=20.10.0
+lz4
+gtsam-develop
+ftfy
+regex
+pydantic>=2.8
+# NOTE: server-only deps (openai, google-genai, PyJWT[crypto], usd-core) moved to
+# the `server` repo's requirements. This is the core SLAM library only.
+#
+# NOTE: `gsplat` is an OPTIONAL extra (not a hard dep) used only by the guarded GPU
+# refinement in vggt_slam.splat_export. Install via `pip install -e ".[splat]"`.
+# The deterministic CPU baseline 3DGS export (docs/splat-export.md) needs nothing here.
