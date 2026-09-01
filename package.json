@@ -39,7 +39,8 @@
     "build": "tsup",
     "typecheck": "tsc --noEmit",
     "test": "npm run build && vitest run",
-    "simulator": "npm run build && node dist/cli.js simulator"
+    "simulator": "npm run build && node dist/cli.js simulator",
+    "prepublishOnly": "npm run typecheck && npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",

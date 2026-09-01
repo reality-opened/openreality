@@ -15,6 +15,19 @@ the OS web client speaks (the vendored [`@reality/protocol`](vendor/protocol)
 is the single source of truth for routes and payload shapes). No orchestration,
 guardrails, or storage logic is duplicated here.
 
+## What runs where
+
+- **The MCP server always runs on your machine**: a stdio process started by
+  your client. Credentials and fetched artifacts stay local.
+- **Every tool call is a REST call to an Open Reality broker**
+  (`OPENREALITY_URL`). Reconstruction, scene agents, storage, and exports
+  execute there; real use needs an account (`openreality-mcp login`).
+- **Fully offline development works without an account**:
+  `openreality-mcp simulator` fakes the whole workflow with fixture data (see
+  below). It does not reconstruct anything.
+- The broker contract is plain REST, so `OPENREALITY_URL` can point at any
+  deployment that speaks it.
+
 ## Install: Claude Code
 
 ```bash
