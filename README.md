@@ -53,6 +53,44 @@ Add to `claude_desktop_config.json` (Settings → Developer → Edit Config):
 }
 ```
 
+## Install — Codex
+
+```bash
+codex mcp add openreality -- npx -y openreality-mcp serve
+```
+
+or in `~/.codex/config.toml` (the Codex IDE extension reads the same file;
+verified against codex-cli 0.146.0):
+
+```toml
+[mcp_servers.openreality]
+command = "npx"
+args = ["-y", "openreality-mcp", "serve"]
+```
+
+Manage with `codex mcp list` / `codex mcp get openreality` / `codex mcp remove openreality`.
+
+## Install — Cursor
+
+One-click: [Add to Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=openreality&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIm9wZW5yZWFsaXR5LW1jcCIsInNlcnZlIl19)
+(the deeplink carries the base64 of the server config below).
+
+Or add to `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (per project):
+
+```json
+{
+  "mcpServers": {
+    "openreality": {
+      "command": "npx",
+      "args": ["-y", "openreality-mcp", "serve"]
+    }
+  }
+}
+```
+
+Sign-in is shared: `npx -y openreality-mcp login` once, and every client that starts
+the server picks up the stored credentials.
+
 ## Sign in
 
 The broker authenticates with a durable **API key** (`ork_...`, opaque,
@@ -131,12 +169,12 @@ the durable API-key routes against the same `ork_...` wire contract as the real
 broker. [`examples/transcript.md`](examples/transcript.md) is a full recorded
 session.
 
-## Tool surface (40 tools)
+## Tool surface (41 tools)
 
 | Namespace | Tools |
 |---|---|
 | `workspace_*` | list_scenes (sync cursor), upload_video, upload_recording, upload_splat (inline + chunked), job_status, job_wait |
-| `scene_*` | card, list_objects, measure_distance, measure_angle, plan_path, planes, ground_frame, ground_frame_fit, anchor, keyframe_image, synthetic_views, synthetic_view_image, lod, lod_build, imported_objects, imported_objects_run, object_complete, object_variants, segment, job_status, job_wait, share |
+| `scene_*` | card, list_objects, measure_distance, measure_angle, plan_path, planes, ground_frame, ground_frame_fit, anchor, keyframe_image, synthetic_views, synthetic_view_image, lod, lod_build, imported_objects, imported_objects_run, object_complete, object_variants, segment, job_status, job_wait, share, share_access (who opened a share link, visits, returns, questions) |
 | `agent_*` | annotate, replay, pilot, chat (waits + renders the event transcript), run_events, runs |
 | `export_*` / `artifact_*` | export_manifest, export_prepare, export_status, artifact_fetch, artifact_fetch_splat, artifact_fetch_cloud |
 

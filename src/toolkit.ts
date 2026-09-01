@@ -70,29 +70,87 @@ export async function guard(fn: () => Promise<ToolResult>): Promise<ToolResult> 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export interface PollOutcome {
-  final: OreosJobStatus;
+  /** Null only when the wait timed out before a single successful status read. */
+  final: OreosJobStatus | null;
   /** Stage transitions observed, e.g. ["queued", "running:recon", "done"]. */
   trail: string[];
   timed_out: boolean;
 }
+
+/** Called once per poll iteration so long waits can surface liveness. */
+export type PollTick = (status: OreosJobStatus | null, elapsedS: number) => void | Promise<void>;
+
+/**
+ * The shape of the MCP request-handler `extra` this package needs for progress:
+ * when the client attached a progressToken to the tool call, each poll tick is
+ * reported as a `notifications/progress` — which resets the harness's
+ * "no response or progress" idle timeout that otherwise kills waits longer than
+ * its window (observed: a healthy 30-min workspace_job_wait aborted client-side).
+ * Without a token this returns undefined and the wait behaves as before.
+ */
+export interface ProgressExtra {
+  _meta?: { progressToken?: string | number };
+  sendNotification?: (notification: {
+    method: 'notifications/progress';
+    params: { progressToken: string | number; progress: number; total?: number; message?: string };
+  }) => Promise<void>;
+}
+
+export function progressTick(extra: ProgressExtra | undefined): PollTick | undefined {
+  const token = extra?._meta?.progressToken;
+  const send = extra?.sendNotification;
+  if (token === undefined || !send) return undefined;
+  return async (status, elapsedS) => {
+    const stage = status ? (status.stage ?? status.status) : 'polling';
+    try {
+      await send({
+        method: 'notifications/progress',
+        params: { progressToken: token, progress: elapsedS, message: `${stage} (${Math.round(elapsedS)}s)` },
+      });
+    } catch {
+      // Progress is best-effort; a notification failure must never kill the wait.
+    }
+  };
+}
+
+/** Transient poll failures tolerated before the wait gives up. One blip in a
+ * 30-minute wait used to abort the whole tool call; genuine outages still
+ * surface after this many consecutive failures. Semantic 4xx rejections
+ * (unknown job, revoked auth) are answers, not blips, and throw immediately. */
+const POLL_MAX_CONSECUTIVE_FAILURES = 5;
 
 async function pollJobPath(
   client: ApiClient,
   pathFor: () => string,
   timeoutS: number,
   pollS: number,
+  onTick?: PollTick,
 ): Promise<PollOutcome> {
-  const deadline = Date.now() + timeoutS * 1000;
+  const started = Date.now();
+  const deadline = started + timeoutS * 1000;
   const trail: string[] = [];
   let last: OreosJobStatus | null = null;
+  let consecutiveFailures = 0;
   for (;;) {
-    const status = await client.json<OreosJobStatus>('GET', pathFor());
-    const state = normalizeOreosJobState(status.status);
-    const label = status.stage ? `${state}:${status.stage}` : state;
-    if (trail[trail.length - 1] !== label) trail.push(label);
-    last = status;
-    if (state === 'done' || state === 'error') return { final: status, trail, timed_out: false };
-    if (Date.now() >= deadline) return { final: status, trail, timed_out: true };
+    try {
+      const status = await client.json<OreosJobStatus>('GET', pathFor());
+      consecutiveFailures = 0;
+      const state = normalizeOreosJobState(status.status);
+      const label = status.stage ? `${state}:${status.stage}` : state;
+      if (trail[trail.length - 1] !== label) trail.push(label);
+      last = status;
+      if (state === 'done' || state === 'error') return { final: status, trail, timed_out: false };
+    } catch (err) {
+      if (err instanceof ApiError && err.status < 500) throw err;
+      consecutiveFailures += 1;
+      if (consecutiveFailures >= POLL_MAX_CONSECUTIVE_FAILURES) throw err;
+      const note = 'poll-retry';
+      if (trail[trail.length - 1] !== note) trail.push(note);
+    }
+    if (Date.now() >= deadline) {
+      return { final: last, trail, timed_out: true };
+    }
+    await onTick?.(last, (Date.now() - started) / 1000);
     await sleep(pollS * 1000);
   }
 }
@@ -102,8 +160,9 @@ export function pollWorkspaceJob(
   jobId: string,
   timeoutS = 900,
   pollS = 2,
+  onTick?: PollTick,
 ): Promise<PollOutcome> {
-  return pollJobPath(client, () => OREOS_REST_PATHS.WORKSPACE_JOB(jobId), timeoutS, pollS);
+  return pollJobPath(client, () => OREOS_REST_PATHS.WORKSPACE_JOB(jobId), timeoutS, pollS, onTick);
 }
 
 export function pollSceneJob(
@@ -112,6 +171,7 @@ export function pollSceneJob(
   jobId: string,
   timeoutS = 600,
   pollS = 2,
+  onTick?: PollTick,
 ): Promise<PollOutcome> {
-  return pollJobPath(client, () => OREOS_REST_PATHS.SCENE_JOB(scanId, jobId), timeoutS, pollS);
+  return pollJobPath(client, () => OREOS_REST_PATHS.SCENE_JOB(scanId, jobId), timeoutS, pollS, onTick);
 }

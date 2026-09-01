@@ -31,6 +31,9 @@ export const REST_PATHS = {
   SCENE_SPLAT_PLY: (scanId: string) => `/api/scenes/${encodeURIComponent(scanId)}/splat.ply`,
   // Mint a read-only, single-scan share token (owner-authed). See SHARE types below.
   SCENE_SHARE: (scanId: string) => `/api/scenes/${encodeURIComponent(scanId)}/share`,
+  // Owner-only read of what every minted share link was used for (opens, visits, returns,
+  // Q&A questions), per link. A share token cannot reach it. See SHARE ACCESS types below.
+  SCENE_SHARE_ACCESS: (scanId: string) => `/api/scenes/${encodeURIComponent(scanId)}/share/access`,
   // Metric-anchor calibration (owner-authed, non-destructive). See ANCHOR types below.
   SCENE_ANCHOR: (scanId: string) => `/api/scenes/${encodeURIComponent(scanId)}/anchor`,
   // Auto-clamp 3DGS scale outliers (owner-authed, non-destructive). See CLAMP types below.
@@ -396,6 +399,66 @@ export interface ShareSceneResponse {
   scan_id: string;
   /** Epoch seconds at which the token expires. */
   expires_at: number;
+  /**
+   * `sha256(token)[:12]` — unique per minted link, reveals nothing about the token. Record it
+   * next to the person the link is sent to; GET …/share/access reports per `access_id`.
+   * Absent on brokers that predate the access log.
+   */
+  access_id?: string;
+}
+
+// ── Share-link access log (measurement) ──
+// Every share-authorised request is recorded server-side under the scene's derived tree,
+// keyed by the link's access_id. The owner reads the fold via GET /api/scenes/<id>/share/access.
+// Definitions (server/share_access.py): a new VISIT starts after 30 min without requests;
+// RETURNED = a visit that began >= 24 h after first_seen.
+
+export interface ShareAccessQuestion {
+  ts: number;
+  question: string;
+}
+
+export interface ShareAccessProspect {
+  access_id: string;
+  /** Token iat/exp (epoch seconds) as carried on the events, when known. */
+  iat: number | null;
+  exp: number | null;
+  opened: true;
+  requests: number;
+  visits: number;
+  first_seen: number;
+  last_seen: number;
+  returned: boolean;
+  returned_at: number | null;
+  /** Distinct (hashed ip, hashed ua) pairs seen on this link. */
+  devices: number;
+  questions: ShareAccessQuestion[];
+  /** Request count per server endpoint name. */
+  endpoints: Record<string, number>;
+  visit_starts: number[];
+}
+
+export interface ShareAccessEvent {
+  ts: number;
+  access_id: string;
+  iat: number | null;
+  exp: number | null;
+  endpoint: string;
+  method: string;
+  ip: string | null;
+  ua: string | null;
+  question?: string;
+}
+
+/** Response from GET /api/scenes/<id>/share/access (owner-only). */
+export interface ShareAccessResponse {
+  scan_id: string;
+  generated_at: number;
+  definitions: Record<string, string>;
+  prospects: ShareAccessProspect[];
+  event_count: number;
+  /** Present only with `?events=1`. */
+  events?: ShareAccessEvent[];
 }
 
 // ── Building / project-level delivery ──

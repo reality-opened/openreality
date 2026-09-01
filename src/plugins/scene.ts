@@ -13,12 +13,13 @@ import {
   type OreosLodResponse,
   type PersistedScene,
   type PlanesResponse,
+  type ShareAccessResponse,
   type ShareSceneResponse,
 } from '@reality/protocol';
 import { z } from 'zod';
 import type { Context } from 'cordis';
 import { fetchSceneCard } from '../card.js';
-import { guard, imageResult, jsonResult, pollSceneJob, textResult, vec3 } from '../toolkit.js';
+import { guard, imageResult, jsonResult, pollSceneJob, progressTick, textResult, vec3 } from '../toolkit.js';
 
 /** Inline waypoint budget for a planned path; the rest stays in the path doc. */
 const DEFAULT_WAYPOINT_PREVIEW = 24;
@@ -87,7 +88,8 @@ export const inject = ['mcp', 'broker'];
 export function apply(ctx: Context): void {
   const { mcp } = ctx;
   const { client } = ctx.broker;
-  mcp.tool(ctx, 
+  mcp.tool(
+    ctx,
     'scene_card',
     {
       title: 'Scene context card',
@@ -102,7 +104,8 @@ export function apply(ctx: Context): void {
       guard(async () => textResult((await fetchSceneCard(client, scan_id)).markdown)),
   );
 
-  mcp.tool(ctx, 
+  mcp.tool(
+    ctx,
     'scene_list_objects',
     {
       title: 'List scene objects',
@@ -140,7 +143,8 @@ export function apply(ctx: Context): void {
       }),
   );
 
-  mcp.tool(ctx, 
+  mcp.tool(
+    ctx,
     'scene_measure_distance',
     {
       title: 'Measure a distance',
@@ -166,7 +170,8 @@ export function apply(ctx: Context): void {
       ),
   );
 
-  mcp.tool(ctx, 
+  mcp.tool(
+    ctx,
     'scene_measure_angle',
     {
       title: 'Measure an angle',
@@ -190,7 +195,8 @@ export function apply(ctx: Context): void {
       ),
   );
 
-  mcp.tool(ctx, 
+  mcp.tool(
+    ctx,
     'scene_plan_path',
     {
       title: 'Plan a robot path',
@@ -253,7 +259,8 @@ export function apply(ctx: Context): void {
       }),
   );
 
-  mcp.tool(ctx, 
+  mcp.tool(
+    ctx,
     'scene_planes',
     {
       title: 'Detect floor/wall planes',
@@ -278,7 +285,8 @@ export function apply(ctx: Context): void {
       ),
   );
 
-  mcp.tool(ctx, 
+  mcp.tool(
+    ctx,
     'scene_ground_frame',
     {
       title: 'Read the ground frame',
@@ -296,7 +304,8 @@ export function apply(ctx: Context): void {
       ),
   );
 
-  mcp.tool(ctx, 
+  mcp.tool(
+    ctx,
     'scene_ground_frame_fit',
     {
       title: 'Fit the ground frame',
@@ -321,7 +330,8 @@ export function apply(ctx: Context): void {
       ),
   );
 
-  mcp.tool(ctx, 
+  mcp.tool(
+    ctx,
     'scene_anchor',
     {
       title: 'Anchor the scene to metres',
@@ -351,7 +361,8 @@ export function apply(ctx: Context): void {
       ),
   );
 
-  mcp.tool(ctx, 
+  mcp.tool(
+    ctx,
     'scene_keyframe_image',
     {
       title: 'Fetch a keyframe image',
@@ -370,7 +381,8 @@ export function apply(ctx: Context): void {
       }),
   );
 
-  mcp.tool(ctx, 
+  mcp.tool(
+    ctx,
     'scene_synthetic_views',
     {
       title: 'List synthetic views',
@@ -391,7 +403,8 @@ export function apply(ctx: Context): void {
       ),
   );
 
-  mcp.tool(ctx, 
+  mcp.tool(
+    ctx,
     'scene_synthetic_view_image',
     {
       title: 'Fetch a synthetic view image',
@@ -409,7 +422,8 @@ export function apply(ctx: Context): void {
       }),
   );
 
-  mcp.tool(ctx, 
+  mcp.tool(
+    ctx,
     'scene_lod',
     {
       title: 'LOD status',
@@ -425,7 +439,8 @@ export function apply(ctx: Context): void {
       ),
   );
 
-  mcp.tool(ctx, 
+  mcp.tool(
+    ctx,
     'scene_lod_build',
     {
       title: 'Build LOD variants',
@@ -442,7 +457,8 @@ export function apply(ctx: Context): void {
       ),
   );
 
-  mcp.tool(ctx, 
+  mcp.tool(
+    ctx,
     'scene_imported_objects',
     {
       title: 'Imported-splat objects status',
@@ -462,7 +478,8 @@ export function apply(ctx: Context): void {
       ),
   );
 
-  mcp.tool(ctx, 
+  mcp.tool(
+    ctx,
     'scene_imported_objects_run',
     {
       title: 'Cluster imported-splat objects',
@@ -482,7 +499,8 @@ export function apply(ctx: Context): void {
       ),
   );
 
-  mcp.tool(ctx, 
+  mcp.tool(
+    ctx,
     'scene_object_complete',
     {
       title: 'Complete an object to 3D',
@@ -503,7 +521,8 @@ export function apply(ctx: Context): void {
       ),
   );
 
-  mcp.tool(ctx, 
+  mcp.tool(
+    ctx,
     'scene_object_variants',
     {
       title: 'Generate object variants',
@@ -528,7 +547,8 @@ export function apply(ctx: Context): void {
       ),
   );
 
-  mcp.tool(ctx, 
+  mcp.tool(
+    ctx,
     'scene_segment',
     {
       title: 'Segment an object (advanced)',
@@ -553,7 +573,8 @@ export function apply(ctx: Context): void {
       ),
   );
 
-  mcp.tool(ctx, 
+  mcp.tool(
+    ctx,
     'scene_job_status',
     {
       title: 'Check a scene job',
@@ -574,7 +595,8 @@ export function apply(ctx: Context): void {
       ),
   );
 
-  mcp.tool(ctx, 
+  mcp.tool(
+    ctx,
     'scene_job_wait',
     {
       title: 'Wait for a scene job',
@@ -587,13 +609,42 @@ export function apply(ctx: Context): void {
       },
       annotations: { readOnlyHint: true },
     },
-    async ({ scan_id, job_id, timeout_s, poll_s }) =>
+    async ({ scan_id, job_id, timeout_s, poll_s }, extra) =>
       guard(async () =>
-        jsonResult(await pollSceneJob(client, scan_id, job_id, timeout_s, poll_s)),
+        jsonResult(await pollSceneJob(client, scan_id, job_id, timeout_s, poll_s, progressTick(extra))),
       ),
   );
 
-  mcp.tool(ctx, 
+  mcp.tool(
+    ctx,
+    'scene_share_access',
+    {
+      title: 'What each share link was used for',
+      description:
+        'Owner-only read of the share-link access log (GET /share/access): per minted link ' +
+        '(access_id) — opened, request count, visits (new visit after 30 min idle), ' +
+        'first/last seen, returned (a visit >= 24 h after the first), devices, and the Q&A ' +
+        'questions the viewer asked. This is the behavioural evidence for customer discovery ' +
+        '(L5 = returned). Match access_id to the person you sent the link to. ' +
+        'events:true appends the raw event list.',
+      inputSchema: {
+        scan_id: z.string(),
+        events: z.boolean().optional(),
+      },
+    },
+    async ({ scan_id, events }) =>
+      guard(async () =>
+        jsonResult(
+          await client.json<ShareAccessResponse>(
+            'GET',
+            REST_PATHS.SCENE_SHARE_ACCESS(scan_id) + (events ? '?events=1' : ''),
+          ),
+        ),
+      ),
+  );
+
+  mcp.tool(
+    ctx,
     'scene_share',
     {
       title: 'Mint a read-only share link',

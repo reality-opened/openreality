@@ -14,7 +14,7 @@ import {
 import { z } from 'zod';
 import type { Config } from '../config.js';
 import type { Context } from 'cordis';
-import { guard, jsonResult, pollWorkspaceJob } from '../toolkit.js';
+import { guard, jsonResult, pollWorkspaceJob, progressTick } from '../toolkit.js';
 
 const exportFormat = z.enum(['openreality', 'groot_lerobot_v2', 'isaac_usd']);
 
@@ -82,7 +82,7 @@ export function apply(ctx: Context): void {
         poll_s: z.number().min(0.05).max(60).default(2),
       },
     },
-    async ({ scan_id, format, source, wait, timeout_s, poll_s }) =>
+    async ({ scan_id, format, source, wait, timeout_s, poll_s }, extra) =>
       guard(async () => {
         const started = await client.json<Record<string, unknown>>(
           'POST',
@@ -91,7 +91,7 @@ export function apply(ctx: Context): void {
         );
         const jobId = typeof started.job_id === 'string' ? started.job_id : null;
         if (!wait || !jobId) return jsonResult(started);
-        const outcome = await pollWorkspaceJob(client, jobId, timeout_s, poll_s);
+        const outcome = await pollWorkspaceJob(client, jobId, timeout_s, poll_s, progressTick(extra));
         const prepared = await client.json<OreosPreparedExportResponse>(
           'GET',
           OREOS_REST_PATHS.SCENE_EXPORT_PREPARED(scan_id, format, source),

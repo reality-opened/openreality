@@ -16,8 +16,8 @@ public repo is self-contained.
 |---|---|
 | Upstream repo | `reality-opened/web` (private) |
 | Upstream path | `packages/protocol/*.ts` (implementation files; tests stay upstream) |
-| Synced at commit | `af44b7149b34a96aa10b7234a2d6f6dc939876ea` |
-| Last upstream change to the package | `ade8629b0fb83f767cb05997de55812ba7bf5fbd` (2026-08-11) |
+| Synced at commit | `55e4b4d` (web main, 2026-09-01) |
+| Last upstream change to the package | share-access + event additions (rest.ts/events.ts/types.ts, 2026-08) |
 | Local modifications | none |
 
 ## Sync procedure

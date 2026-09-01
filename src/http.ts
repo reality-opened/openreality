@@ -45,12 +45,33 @@ export class ApiClient {
     retried = false,
   ): Promise<Response> {
     const token = await this.session.token();
-    const res = await this.fetchImpl(this.baseUrl + path, {
-      method,
-      headers: { ...init.headers, Authorization: `Bearer ${token}` },
-      body: init.body,
-      duplex: init.duplex,
-    } as RequestInit);
+    // Transport-level failures (undici "fetch failed": a stale keep-alive socket
+    // the broker closed, a container recycle mid-connect, a DNS blip) throw before
+    // any HTTP status exists. Retry them for GETs only — GETs here carry no body
+    // and are safe to repeat, while POST bodies may be one-shot streams
+    // (uploadFile) and non-idempotent routes must surface the failure instead.
+    const attempts = method === 'GET' ? 3 : 1;
+    let res: Response | undefined;
+    for (let attempt = 1; ; attempt++) {
+      try {
+        res = await this.fetchImpl(this.baseUrl + path, {
+          method,
+          headers: { ...init.headers, Authorization: `Bearer ${token}` },
+          body: init.body,
+          duplex: init.duplex,
+        } as RequestInit);
+        break;
+      } catch (err) {
+        if (attempt >= attempts) {
+          const detail = err instanceof Error ? err.message : String(err);
+          throw new Error(
+            `network failure on ${method} ${path} (${attempts === 1 ? 'not retried' : `${attempts} attempts`}): ${detail}`,
+            { cause: err },
+          );
+        }
+        await new Promise((r) => setTimeout(r, 250 * 2 ** (attempt - 1)));
+      }
+    }
     if (res.status === 401 && !retried) {
       if (await this.session.refresh()) {
         return this.send(method, path, init, true);

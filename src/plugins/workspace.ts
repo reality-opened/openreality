@@ -21,7 +21,7 @@ import {
 } from '@reality/protocol';
 import { z } from 'zod';
 import type { Context } from 'cordis';
-import { guard, jsonResult, pollWorkspaceJob } from '../toolkit.js';
+import { guard, jsonResult, pollWorkspaceJob, progressTick } from '../toolkit.js';
 
 const GiB = 1024 * 1024 * 1024;
 const INLINE_SPLAT_CAP = 64 * 1024 * 1024; // routes_ingest.py inline cap
@@ -249,7 +249,9 @@ export function apply(ctx: Context): void {
       },
       annotations: { readOnlyHint: true },
     },
-    async ({ job_id, timeout_s, poll_s }) =>
-      guard(async () => jsonResult(await pollWorkspaceJob(client, job_id, timeout_s, poll_s))),
+    async ({ job_id, timeout_s, poll_s }, extra) =>
+      guard(async () =>
+        jsonResult(await pollWorkspaceJob(client, job_id, timeout_s, poll_s, progressTick(extra))),
+      ),
   );
 }
