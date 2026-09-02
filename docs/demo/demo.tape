@@ -1,14 +1,13 @@
 # Open Reality CLI demo (VHS: https://github.com/charmbracelet/vhs)
 #
-# Renders a REAL Claude Code session driving the openreality MCP tools against
+# Renders a real Codex session driving the openreality MCP tools against
 # the offline simulator (deterministic backend, no account, no GPU). Re-render
-# any time with:  cd docs/demo && vhs demo.tape
+# any time with:  cd docs/demo && ./render.sh
 #
-# Needs: vhs, ttyd, ffmpeg, a logged-in `claude` CLI, and `npm run build` done
-# in mcp/ (setup.sh falls back to the published npm package otherwise).
+# Needs: vhs, ttyd, ffmpeg, a logged-in `codex` CLI, and Python with NumPy +
+# Matplotlib. A local mcp/ build is preferred; setup falls back to npm.
 
-Output demo.gif
-Output demo.mp4
+Output terminal.mp4
 
 Set Shell bash
 Set FontSize 18
@@ -20,7 +19,7 @@ Set PlaybackSpeed 2.5
 Set TypingSpeed 100ms
 Set Theme { "name": "openreality", "background": "#071c15", "foreground": "#e8e3d5", "cursor": "#d4a017", "selection": "#0b3d2c", "black": "#0b3d2c", "red": "#e07070", "green": "#3fa06f", "yellow": "#d4a017", "blue": "#7fa8c9", "magenta": "#b48ead", "cyan": "#7fc7bd", "white": "#e8e3d5", "brightBlack": "#3a5c4c", "brightRed": "#f0a0a0", "brightGreen": "#66c294", "brightYellow": "#f0c75e", "brightBlue": "#a3c6e0", "brightMagenta": "#d0b8d8", "brightCyan": "#a5ded6", "brightWhite": "#ffffff" }
 
-# ---- hidden bootstrap: simulator + throwaway Claude project ----------------
+# ---- hidden bootstrap: simulator + throwaway Codex project -----------------
 Hide
 Type "source ./setup.sh"
 Enter
@@ -31,17 +30,17 @@ Show
 
 # ---- install lines, on camera ----------------------------------------------
 Sleep 800ms
-Type "# install the Open Reality tools (this demo points them at the bundled offline simulator)"
+Type "# Install Open Reality for Codex (this take uses the bundled offline simulator)"
 Sleep 300ms
 Enter
-Type "codex mcp add openreality --env OPENREALITY_URL=http://127.0.0.1:8973 --env OPENREALITY_TOKEN=sim-token --env OPENREALITY_DIR=/tmp/openreality-vhs-demo/state -- npx -y openreality-mcp serve"
+Type "codex mcp add openreality-demo --env OPENREALITY_URL=http://127.0.0.1:8973 --env OPENREALITY_TOKEN=sim-token --env OPENREALITY_DIR=$PWD/state --env OPENREALITY_ARTIFACTS_DIR=$PWD/artifacts -- npx -y openreality-mcp serve"
 Sleep 400ms
 Enter
 Wait+Screen@60s /Added global MCP/
 Sleep 1500ms
 
 # ---- open Codex --------------------------------------------------------------
-Type "codex -a never -s workspace-write"
+Type "codex --approve-for-me"
 Sleep 500ms
 Enter
 # TODO(post-login): replace with a Wait on Codex's idle marker once a logged-in
@@ -49,7 +48,7 @@ Enter
 Sleep 12s
 
 # ---- beat 1: video in, scene out --------------------------------------------
-Type "upload office-walkthrough.mp4, wait for the reconstruction, and tell me the new scan id"
+Type "use only the openreality-demo MCP server: upload office-walkthrough.mp4, wait for reconstruction, and tell me the new scan id"
 Sleep 400ms
 Enter
 Wait+Screen@240s /sim-scan-/
@@ -63,7 +62,7 @@ Wait+Screen@180s /relative/
 Sleep 14s
 
 # ---- beat 3: calibrate, then metres -----------------------------------------
-# (No content wait here: this Claude build renders MCP calls without the tool
+# (No content wait here: Codex renders MCP calls without a stable completion
 # name, and every distinctive completion word also appears in the typed prompt
 # or the previous turn. A generous fixed sleep covers the three-tool turn.)
 Type "the desk is actually 1.6m from the chair. calibrate the scan with that, then measure desk to chair again"
@@ -87,5 +86,5 @@ Sleep 500ms
 Type "exit"
 Enter
 Sleep 500ms
-Type "kill $(cat /tmp/openreality-vhs-demo/sim.pid) 2>/dev/null; codex mcp remove openreality; true"
+Type "kill $(cat $PWD/sim.pid) 2>/dev/null; rm -f $PWD/sim.pid; codex mcp remove openreality-demo; true"
 Enter

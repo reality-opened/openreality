@@ -8,3 +8,6 @@ third_party/
 .venv/
 .pytest_cache/
 docs/demo/diag/
+docs/demo/.demo-workspace/
+docs/demo/panel.mp4
+docs/demo/terminal.mp4
