@@ -108,6 +108,12 @@ npx -y openreality-mcp login
 
 > “把这个扫描导出成机器人训练数据，把 zip 存到本地。”
 
+<p align="center">
+  <img src="https://github.com/reality-opened/openreality/releases/download/demo-assets-v1/demo.gif" alt="Claude Code 驱动 Open Reality 的真实会话：上传、诚实的相对单位、校准成米、导出机器人数据" width="800" />
+  <br/>
+  <sub>一段针对内置离线模拟器的真实 Claude Code 会话，由 <a href="docs/demo/demo.tape">docs/demo/demo.tape</a> 通过 <a href="https://github.com/charmbracelet/vhs">VHS</a> 渲染。</sub>
+</p>
+
 ## 🏠 自己部署
 
 整个流程都可以自托管。完整文档见

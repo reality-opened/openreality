@@ -109,6 +109,12 @@ Once connected, talk to your assistant like this:
 
 > "Export this scan as robot-training data and save the zip locally."
 
+<p align="center">
+  <img src="https://github.com/reality-opened/openreality/releases/download/demo-assets-v1/demo.gif" alt="A Claude Code session driving Open Reality: upload, honest relative units, calibration to metres, robot-data export" width="800" />
+  <br/>
+  <sub>A real Claude Code session against the built-in offline simulator, rendered from <a href="docs/demo/demo.tape">docs/demo/demo.tape</a> with <a href="https://github.com/charmbracelet/vhs">VHS</a>.</sub>
+</p>
+
 ## 🏠 Run it yourself
 
 The whole workflow is self-hostable. Read

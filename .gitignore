@@ -7,3 +7,6 @@ __pycache__/
 third_party/
 .venv/
 .pytest_cache/
+docs/demo/*.gif
+docs/demo/*.mp4
+docs/demo/diag/
