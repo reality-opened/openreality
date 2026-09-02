@@ -29,27 +29,38 @@ Type "clear"
 Enter
 Show
 
-# ---- open Claude Code -------------------------------------------------------
+# ---- install lines, on camera ----------------------------------------------
 Sleep 800ms
-Type "claude --model sonnet"
+Type "# install the Open Reality tools (this demo points them at the bundled offline simulator)"
+Sleep 300ms
+Enter
+Type "codex mcp add openreality --env OPENREALITY_URL=http://127.0.0.1:8973 --env OPENREALITY_TOKEN=sim-token --env OPENREALITY_DIR=/tmp/openreality-vhs-demo/state -- npx -y openreality-mcp serve"
+Sleep 400ms
+Enter
+Wait+Screen@60s /Added global MCP/
+Sleep 1500ms
+
+# ---- open Codex --------------------------------------------------------------
+Type "codex -a never -s workspace-write"
 Sleep 500ms
 Enter
-Wait+Screen@120s /❯/
-Sleep 2s
+# TODO(post-login): replace with a Wait on Codex's idle marker once a logged-in
+# diagnostic run shows it (see diag/diag-codex.tape).
+Sleep 12s
 
 # ---- beat 1: video in, scene out --------------------------------------------
 Type "upload office-walkthrough.mp4, wait for the reconstruction, and tell me the new scan id"
 Sleep 400ms
 Enter
 Wait+Screen@240s /sim-scan-/
-Sleep 8s
+Sleep 10s
 
 # ---- beat 2: honest relative units ------------------------------------------
 Type "how far is the desk from the office chair in it?"
 Sleep 400ms
 Enter
 Wait+Screen@180s /relative/
-Sleep 10s
+Sleep 14s
 
 # ---- beat 3: calibrate, then metres -----------------------------------------
 # (No content wait here: this Claude build renders MCP calls without the tool
@@ -58,14 +69,14 @@ Sleep 10s
 Type "the desk is actually 1.6m from the chair. calibrate the scan with that, then measure desk to chair again"
 Sleep 400ms
 Enter
-Sleep 40s
+Sleep 55s
 
 # ---- beat 4: robot-training export, artifact on disk ------------------------
 Type "export the scan as robot training data, save the zip in this folder, and show me what is inside it"
 Sleep 400ms
 Enter
 Wait+Screen@240s /trajectory\.npz/
-Sleep 12s
+Sleep 16s
 
 Sleep 5s
 
@@ -76,5 +87,5 @@ Sleep 500ms
 Type "exit"
 Enter
 Sleep 500ms
-Type "kill $(cat /tmp/openreality-vhs-demo/sim.pid) 2>/dev/null; true"
+Type "kill $(cat /tmp/openreality-vhs-demo/sim.pid) 2>/dev/null; codex mcp remove openreality; true"
 Enter

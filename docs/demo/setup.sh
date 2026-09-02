@@ -32,19 +32,12 @@ for _ in $(seq 1 50); do
   sleep 0.2
 done
 
-# Project MCP config + permissions for a prompt-free session.
-python3 - "$DEMO" "$CLI_CMD" "$CLI_BASE_ARGS" <<'PY'
+# Permissions for a prompt-free session. The MCP server itself is registered
+# ON CAMERA by the demo's visible `claude mcp add ...` line.
+python3 - "$DEMO" <<'PY'
 import json, os, sys
-demo, cmd, base = sys.argv[1], sys.argv[2], sys.argv[3]
-args = base.split() + ["serve"]
-json.dump({"mcpServers": {"openreality": {"command": cmd, "args": args, "env": {
-    "OPENREALITY_URL": "http://127.0.0.1:8973",
-    "OPENREALITY_TOKEN": "sim-token",
-    "OPENREALITY_DIR": os.path.join(demo, "state"),
-    "OPENREALITY_ARTIFACTS_DIR": os.path.join(demo, "artifacts"),
-}}}}, open(os.path.join(demo, ".mcp.json"), "w"), indent=2)
+demo = sys.argv[1]
 json.dump({
-    "enableAllProjectMcpServers": True,
     "permissions": {"allow": ["mcp__openreality", "Bash(ls:*)", "Bash(unzip:*)"]},
 }, open(os.path.join(demo, ".claude", "settings.json"), "w"), indent=2)
 # Pre-trust the workspace so the TUI opens straight into the session.
@@ -59,6 +52,16 @@ PY
 for v in $(env | cut -d= -f1 | grep -E '^(CLAUDECODE|CLAUDE_CODE_|TMUX)'); do
   unset "$v" 2>/dev/null
 done
+
+# Pre-warm the npx cache so the on-camera `npx -y openreality-mcp serve` boots
+# instantly (whoami fails without credentials; the download is what matters).
+npx -y openreality-mcp whoami >/dev/null 2>&1 || true
+
+# Codex client hygiene: the demo registers the MCP server ON CAMERA, so drop
+# any stale entry first, and give the workspace a git root so Codex skips its
+# untracked-folder warning.
+command -v codex >/dev/null 2>&1 && codex mcp remove openreality >/dev/null 2>&1
+git init -q "$DEMO" 2>/dev/null
 
 # A stand-in capture for the upload beat (the simulator does not decode video).
 head -c 65536 /dev/urandom > "$DEMO/office-walkthrough.mp4"
