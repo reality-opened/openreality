@@ -115,6 +115,15 @@ Once connected, talk to your assistant like this:
   <sub>A real Codex session against the built-in offline simulator, shown beside a synchronized fixture visualization and rendered from <a href="docs/demo/demo.tape">docs/demo/demo.tape</a> with <a href="https://github.com/charmbracelet/vhs">VHS</a>.</sub>
 </p>
 
+<p align="center">
+  <video width="800" controls>
+    <source src="docs/demo/composite-test.mp4" type="video/mp4" />
+    Your browser does not support the video tag.
+  </video>
+  <br/>
+  <sub>Composite test demonstration video.</sub>
+</p>
+
 ## 🏠 Run it yourself
 
 The whole workflow is self-hostable. Read
