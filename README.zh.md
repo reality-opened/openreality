@@ -91,6 +91,21 @@ codex mcp add openreality -- npx -y openreality-mcp serve
 
 </details>
 
+<details>
+<summary><b>Claude Code 插件 / Claude 桌面版一键扩展</b>（点击展开）</summary>
+
+Claude Code 插件（一步装好 MCP 服务器和工作流技能）：
+
+```
+/plugin marketplace add reality-opened/openreality
+/plugin install openreality@openreality
+```
+
+Claude 桌面版扩展：从[最新 release](https://github.com/reality-opened/openreality/releases/latest)
+下载 `openreality-mcp-<version>.mcpb`，双击它，或者把它拖进 Claude 桌面版窗口。不需要打开终端。
+
+</details>
+
 然后登录一次（会打开浏览器，并在你的机器上保存一个可随时吊销的 API key）：
 
 ```bash
@@ -164,6 +179,21 @@ flowchart LR
 MCP 进程永远跑在你自己的机器上，凭证也保存在本地；每个工具调用都是对服务端
 （我们的或你自己的）的一次类型化 REST 请求。大文件写到你的磁盘，绝不塞进 AI
 的上下文。服务端的拒绝和不确定性标注会原样到达 AI，它没法把相对单位说成米。
+
+这条测量规则的来龙去脉见
+[为什么我们的 3D 工具在你证明之前拒绝说“米”](docs/posts/relative-units-are-not-metres.md)（英文）。
+
+## 🙏 致谢
+
+Open Reality 建立在他人的研究和代码之上。感谢：
+
+- [VGGT-SLAM](https://github.com/MIT-SPARK/VGGT-SLAM)（Dominic Maggio、Hyungtae Lim、Luca Carlone，MIT SPARK 实验室）。`core/` 里的重建核心是 VGGT-SLAM 2.0 系列，上面的扫描演示也来自他们。
+- [VGGT](https://github.com/facebookresearch/vggt)（Meta AI），自托管服务端按其许可自行获取的前馈式 3D 骨干模型（见上面的许可说明）。
+- [Depth Anything V2](https://github.com/DepthAnything/Depth-Anything-V2)，我们用来消除地图分段之间尺度漂移的公制深度模型。
+- [gsplat](https://github.com/nerfstudio-project/gsplat)（Nerfstudio 项目），splat 导出中可选的 GPU 精修。
+- [SAM 3](https://github.com/facebookresearch/sam3)（Meta AI）用于分割；SAM 3D Objects 和 [TRELLIS](https://github.com/microsoft/TRELLIS)（Microsoft）用于托管服务上的物体补全和变体生成。
+- [LeRobot](https://github.com/huggingface/lerobot)（Hugging Face）、NVIDIA [GR00T](https://github.com/NVIDIA/Isaac-GR00T) 和 Isaac Sim，我们的机器人训练数据导出以它们的数据集和场景格式为目标。
+- [GTSAM](https://github.com/borglab/gtsam) 提供因子图优化，[cordis](https://github.com/cordiverse/cordis) 提供插件运行时，以及 [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)。
 
 ## 🧑‍💻 开发
 

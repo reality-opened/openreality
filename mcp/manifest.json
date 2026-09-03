@@ -1,0 +1,75 @@
+{
+  "manifest_version": "0.3",
+  "name": "openreality-mcp",
+  "display_name": "Open Reality",
+  "version": "0.3.1",
+  "description": "Phone video to an AI-queryable 3D scene: reconstruct, measure, plan paths, export robot-training data.",
+  "long_description": "Scan a room with your phone, then ask Claude about it. Open Reality turns plain video into a persistent 3D scene that Claude can measure (distances, angles, floor and wall planes), navigate (path planning through the scanned free space), inspect (objects, keyframes, rendered views), and export as robot-training data (LeRobot / GR00T style datasets, Isaac Sim scenes).\n\nHonesty is built in: a length is only reported in metres after you calibrate the scene with one real-world distance; until then every number is labelled as relative units, and the Isaac export is refused. Server refusals and uncertainty labels reach Claude unedited.\n\nThe extension runs on your machine and talks to an Open Reality server over HTTPS: the hosted service at open-reality.io, or your own self-hosted server (set the Server URL below). Sign in once with `npx -y openreality-mcp login`, or paste an API token.",
+  "author": {
+    "name": "reality-opened",
+    "url": "https://open-reality.io"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/reality-opened/openreality"
+  },
+  "homepage": "https://open-reality.io/mcp",
+  "documentation": "https://github.com/reality-opened/openreality/blob/main/mcp/README.md",
+  "support": "https://github.com/reality-opened/openreality/issues",
+  "icon": "icon.png",
+  "server": {
+    "type": "node",
+    "entry_point": "dist/cli.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/dist/cli.js", "serve"],
+      "env": {
+        "OPENREALITY_URL": "${user_config.server_url}",
+        "OPENREALITY_TOKEN": "${user_config.api_token}"
+      }
+    }
+  },
+  "tools_generated": true,
+  "tools": [
+    { "name": "workspace_upload_video", "description": "Upload a phone video and start a 3D reconstruction job." },
+    { "name": "workspace_list_scenes", "description": "List the scenes in the account and which ones are new since last sync." },
+    { "name": "scene_card", "description": "A short honest summary of one scene: source, metric state, objects, artifacts." },
+    { "name": "scene_measure_distance", "description": "Distance between two points; metres only after the scene is anchored." },
+    { "name": "scene_anchor", "description": "Calibrate the scene to metres from two points and one known real distance." },
+    { "name": "scene_planes", "description": "Floor and wall planes of the scene." },
+    { "name": "scene_plan_path", "description": "Plan a path through the scanned free space to a point or an object." },
+    { "name": "scene_list_objects", "description": "The detected objects in the scene (a closed world)." },
+    { "name": "export_prepare", "description": "Build a robot-training export (openreality, groot_lerobot_v2, or isaac_usd)." },
+    { "name": "artifact_fetch", "description": "Download any scene artifact or export to disk; bytes never enter the chat." },
+    { "name": "agent_chat", "description": "Ask the server-side scene agent a question about the scene." }
+  ],
+  "keywords": ["3d", "scan", "slam", "gaussian-splatting", "robotics", "lerobot", "isaac-sim", "measurement", "openreality"],
+  "license": "BSD-2-Clause",
+  "privacy_policies": [
+    "https://github.com/reality-opened/openreality/blob/main/mcp/README.md#privacy-policy"
+  ],
+  "compatibility": {
+    "claude_desktop": ">=0.10.0",
+    "platforms": ["darwin", "win32"],
+    "runtimes": {
+      "node": ">=20.0.0"
+    }
+  },
+  "user_config": {
+    "server_url": {
+      "type": "string",
+      "title": "Server URL",
+      "description": "Leave empty for the hosted service (open-reality.io). Set it to your own server's URL if you self-host.",
+      "required": false,
+      "default": ""
+    },
+    "api_token": {
+      "type": "string",
+      "title": "API token",
+      "description": "Optional. Paste an ork_ API key, or leave empty and run `npx -y openreality-mcp login` once in a terminal.",
+      "sensitive": true,
+      "required": false,
+      "default": ""
+    }
+  }
+}

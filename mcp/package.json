@@ -1,6 +1,7 @@
 {
   "name": "openreality-mcp",
-  "version": "0.3.0",
+  "version": "0.3.1",
+  "mcpName": "io.github.reality-opened/openreality-mcp",
   "description": "Open Reality OS as MCP tools: drive scan upload, reconstruction, scene query, scene agents, and robot-training exports from Claude Code, Claude desktop, Codex, or Cursor.",
   "license": "BSD-2-Clause",
   "homepage": "https://open-reality.io/mcp",
@@ -22,6 +23,9 @@
     "3d",
     "slam",
     "robotics",
+    "lerobot",
+    "3d-reconstruction",
+    "claude-code",
     "openreality"
   ],
   "engines": {
@@ -41,6 +45,7 @@
     "typecheck": "tsc --noEmit",
     "test": "npm run build && vitest run",
     "simulator": "npm run build && node dist/cli.js simulator",
+    "build:mcpb": "bash scripts/build-mcpb.sh",
     "prepublishOnly": "npm run typecheck && npm run build"
   },
   "dependencies": {

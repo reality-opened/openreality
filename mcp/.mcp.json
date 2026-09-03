@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "openreality": {
+      "command": "npx",
+      "args": ["-y", "openreality-mcp", "serve"]
+    }
+  }
+}

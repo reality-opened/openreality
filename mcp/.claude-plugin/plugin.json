@@ -1,0 +1,13 @@
+{
+  "name": "openreality",
+  "description": "Phone video to an AI-queryable 3D scene. Bundles the openreality MCP server (41 tools: upload, reconstruct, measure, plan paths, scene agents, robot-training exports) with the workflow skill that teaches Claude the honesty doctrine (relative units until you calibrate).",
+  "version": "0.3.1",
+  "author": {
+    "name": "reality-opened",
+    "url": "https://open-reality.io"
+  },
+  "homepage": "https://open-reality.io/mcp",
+  "repository": "https://github.com/reality-opened/openreality",
+  "license": "BSD-2-Clause",
+  "keywords": ["3d", "scan", "slam", "robotics", "lerobot", "measurement", "mcp"]
+}

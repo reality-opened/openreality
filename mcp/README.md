@@ -58,9 +58,26 @@ Optionally install the skill so Claude knows the workflow + honesty doctrine:
 copy `skills/openreality/` into `~/.claude/skills/` (or your project's
 `.claude/skills/`).
 
+Or install both at once as a **Claude Code plugin** (this repo is a plugin
+marketplace: [`.claude-plugin/marketplace.json`](../.claude-plugin/marketplace.json)
+at the repo root, plugin manifest in [`.claude-plugin/plugin.json`](.claude-plugin/plugin.json)):
+
+```
+/plugin marketplace add reality-opened/openreality
+/plugin install openreality@openreality
+```
+
 ## Install: Claude desktop
 
-Add to `claude_desktop_config.json` (Settings → Developer → Edit Config):
+**One-click extension (no terminal):** download `openreality-mcp-<version>.mcpb`
+from the [latest release](https://github.com/reality-opened/openreality/releases/latest)
+and double-click it, or drag it into the Claude desktop window. The extension's
+settings panel takes an optional server URL (for self-hosters) and an optional
+API token. The bundle is built from this package by `npm run build:mcpb`
+([`scripts/build-mcpb.sh`](scripts/build-mcpb.sh), manifest in
+[`manifest.json`](manifest.json)).
+
+**Or by hand:** add to `claude_desktop_config.json` (Settings → Developer → Edit Config):
 
 ```json
 {
@@ -215,6 +232,52 @@ npm run typecheck
 npm test             # builds + runs unit, contract, cordis-lifecycle, and stdio e2e
                      # suites; regenerates examples/transcript.md against the simulator
 ```
+
+## Privacy policy
+
+This section is the privacy policy for the `openreality-mcp` package and the
+Claude desktop extension built from it. It is written so that a person with no
+technical background can read it.
+
+**What runs where.** The MCP server is a small program that runs on your own
+computer, started by your AI assistant. It does not run on our servers. It has
+no analytics, no telemetry, and no crash reporting: nothing is sent anywhere
+unless a tool call needs it.
+
+**Data collection.** The program sends data only to the Open Reality server it
+is configured to talk to: the hosted service at `open-reality.io` (operated by
+reality-opened) by default, or your own self-hosted server if you set
+`OPENREALITY_URL`. What it sends is exactly the content of the tool calls your
+assistant makes: video files, splat files, or robot recordings you ask it to
+upload; scene identifiers; measurement points; questions for the scene agent.
+It does not read files you did not ask it to upload.
+
+**Usage and storage on your computer.** Your sign-in credential is stored in
+`~/.config/openreality/credentials.json` (readable only by your user account).
+Downloaded artifacts (point clouds, splats, export bundles) are written under
+`~/.config/openreality/artifacts/`. A small sync cursor (which scene ids this
+machine has already listed) is kept next to them. Delete these folders to
+remove everything the program stored.
+
+**Usage and storage on the hosted service.** Uploads become scenes in your Open
+Reality account and stay there so your assistant can query them later. The
+scene agent's conversations are recorded as event logs so they can be replayed
+without cost. Data is retained until you delete the scene or the account.
+
+**Third-party sharing.** The hosted service uses infrastructure providers to
+process your data (GPU compute for reconstruction, model providers for the
+scene agent and segmentation). They process data on our behalf under their
+terms and do not receive it for their own use. We do not sell your data and do
+not share it with advertisers. Share links you mint are read-only and single
+scene; the `scene_share_access` tool lets you see who used them.
+
+**Data retention.** Local files stay until you delete them. Hosted scenes stay
+until you delete them or ask us to. Revoke a sign-in key at any time with
+`openreality-mcp keys revoke <key_id>`.
+
+**Contact.** Open an issue at
+[github.com/reality-opened/openreality/issues](https://github.com/reality-opened/openreality/issues)
+or use the contact address published at [open-reality.io](https://open-reality.io).
 
 ## License
 

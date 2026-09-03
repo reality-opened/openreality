@@ -109,6 +109,7 @@ export function apply(ctx: Context): void {
     'workspace_upload_video',
     {
       title: 'Upload a video for reconstruction',
+      annotations: { readOnlyHint: false, destructiveHint: false },
       description:
         'Upload a local video file (.mp4/.mov/.avi/.mkv/.webm, ≤1 GB) into the account and ' +
         'start a reconstruction job. Returns {job_id, scan_id} immediately (202); follow with ' +
@@ -144,6 +145,7 @@ export function apply(ctx: Context): void {
     'workspace_upload_recording',
     {
       title: 'Upload a robot recording',
+      annotations: { readOnlyHint: false, destructiveHint: false },
       description:
         'Upload a robot recording (DimOS memory2 .db, ≤2 GB) into the account. Runs the ' +
         'recordings pipeline (recon → odometry-consistency score → QC gate); the scene persists ' +
@@ -172,6 +174,7 @@ export function apply(ctx: Context): void {
     'workspace_upload_splat',
     {
       title: 'Import a Gaussian splat',
+      annotations: { readOnlyHint: false, destructiveHint: false },
       description:
         'Import a local .ply/.spz Gaussian splat as a scene (source="imported_splat", honestly ' +
         'degraded report). ≤64 MiB uploads inline and returns {scan_id, gaussian_count} ' +

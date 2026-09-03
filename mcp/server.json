@@ -1,0 +1,44 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.reality-opened/openreality-mcp",
+  "title": "Open Reality",
+  "description": "Phone video to an AI-queryable 3D scene: reconstruct, measure, plan paths, export robot data.",
+  "websiteUrl": "https://open-reality.io/mcp",
+  "repository": {
+    "url": "https://github.com/reality-opened/openreality",
+    "source": "github",
+    "subfolder": "mcp"
+  },
+  "version": "0.3.1",
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "openreality-mcp",
+      "version": "0.3.1",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "serve"
+        }
+      ],
+      "environmentVariables": [
+        {
+          "name": "OPENREALITY_URL",
+          "description": "Server base URL. Leave unset for the hosted service; point it at your own self-hosted server otherwise.",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "OPENREALITY_TOKEN",
+          "description": "API token. Optional: running `npx openreality-mcp login` once stores a key on this machine instead.",
+          "isRequired": false,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}
