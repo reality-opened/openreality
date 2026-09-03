@@ -10,12 +10,12 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/package/openreality-mcp"><img src="https://img.shields.io/npm/v/openreality-mcp?color=cb3837&logo=npm&label=openreality-mcp" alt="npm" /></a>
-  <a href="https://github.com/reality-opened/openreality/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/reality-opened/openreality/ci.yml?branch=main&logo=github&label=CI" alt="CI" /></a>
+  <!-- <a href="https://github.com/reality-opened/openreality/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/reality-opened/openreality/ci.yml?branch=main&logo=github&label=CI" alt="CI" /></a> -->
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-BSD--2--Clause-blue" alt="license" /></a>
   <img src="https://img.shields.io/badge/MCP-41%20tools-8A2BE2" alt="MCP tools" />
   <img src="https://img.shields.io/badge/self--host-your%20GPU%20or%20Modal-0fa573" alt="self-host" />
-  <img src="https://img.shields.io/badge/node-%E2%89%A520-339933?logo=node.js&logoColor=white" alt="node" />
-  <img src="https://img.shields.io/badge/python-3.11-3776AB?logo=python&logoColor=white" alt="python" />
+  <!-- <img src="https://img.shields.io/badge/node-%E2%89%A520-339933?logo=node.js&logoColor=white" alt="node" />
+  <img src="https://img.shields.io/badge/python-3.11-3776AB?logo=python&logoColor=white" alt="python" /> -->
   <a href="#-contributing"><img src="https://img.shields.io/badge/PRs-welcome-e07070" alt="PRs welcome" /></a>
 </p>
 
@@ -36,33 +36,37 @@
 ---
 
 <p align="center">
-  <img src="https://github.com/reality-opened/web-assets/releases/download/v1/vggt_slam_demo.gif" alt="Live 3D reconstruction from a handheld phone video" width="680" />
+  <img src="docs/demo/demo-gif-v1.gif" alt="Demo v1: a Claude Code session driving Open Reality beside a synchronized 3D scene panel: install, upload, honest relative units, calibration to metres, robot-data export" width="900" />
   <br/>
-  <sub>Live reconstruction from a handheld video: the camera path and the 3D scene build up together.</sub>
+  <sub>Demo v1: a real Claude Code (Opus) session against the built-in offline simulator, beside a synchronized scene panel. Video: <a href="docs/demo/demo-video-v1.mp4">docs/demo/demo-video-v1.mp4</a>. Rendered from <a href="docs/demo/">docs/demo/</a> with <a href="https://github.com/charmbracelet/vhs">VHS</a>.</sub>
 </p>
 
-## ✨ What it does
+<p align="center">
+  <img src="https://github.com/reality-opened/web-assets/releases/download/v1/vggt_slam_demo.gif" alt="Live 3D reconstruction from a handheld phone video (VGGT-SLAM)" width="680" />
+  <br/>
+  <sub>Live reconstruction from a handheld video: the camera path and the 3D scene build up together. Scan demo and the initial technical idea: <a href="https://github.com/MIT-SPARK/VGGT-SLAM">VGGT-SLAM</a> by Dominic Maggio, Hyungtae Lim and Luca Carlone (MIT SPARK Lab). Open Reality's reconstruction core builds on their work.</sub>
+</p>
+
+##  Utilities
 
 | | |
 |---|---|
-| 🎥 &nbsp;**Video in, 3D scene out** | Upload a phone video. A few minutes later you have a persistent 3D scene: geometry, camera path, detected objects, and a written report. |
-| 📏 &nbsp;**Honest measurement** | Distances and angles between any points. Numbers are only called metres after you calibrate with one real-world distance; before that they are clearly labeled relative units, never dressed up. |
-| 🧭 &nbsp;**Path planning** | Plan a route through the scanned free space to an object or a point, with honest failures when the goal is unreachable. |
-| 🤖 &nbsp;**Robot-training exports** | One command turns a scan into LeRobot / GR00T style datasets or an Isaac Sim scene (hosted service). |
-| 🕵️ &nbsp;**Scene agents** | Server-side agents that survey, label, and answer questions about a scene, with a bounded budget and a replayable event log. |
-| 🛠️ &nbsp;**41 tools for your AI** | Everything is exposed through MCP (Model Context Protocol, the standard way AI assistants call external tools), so Claude, Codex, or Cursor can drive the whole workflow in plain English. |
+| 🎥 &nbsp;**Video in, 3D scene out** | Upload a phone video. A few minutes later you have a persistent 3D scene. |
+| 📏 &nbsp;**Measurement** | Distances and angles between any points. Numbers are only called metres after you calibrate with real distance; otherwise relative.|
+| 🧭 &nbsp;**Path planning** | Plan a route through the scanned free space to an object or a point. |
+| 🤖 &nbsp;**Robot-training exports** | Turns a scan into LeRobot / GR00T style datasets or an Isaac Sim scene (hosted service). |
+| 🕵️ &nbsp;**Scene agents** | Server-side agents that survey, label, and answer questions about a scene. |
+| 🛠️ &nbsp;**41 tools for your AI** | Everything is exposed through MCP. |
 | 🧪 &nbsp;**Offline simulator** | A mock backend fakes the entire workflow with fixture data, so you can develop and demo with no account and no GPU. |
 | 🏠 &nbsp;**Self-hostable** | The full server runs on your own GPU box or your own Modal account, no account with us needed. |
 
-## 🚀 Get started in 60 seconds
+## Quickstart
 
-Add the tools to your AI assistant (this starts a small local process; nothing is installed globally):
+Add the tools to your AI assistant:
 
 ```bash
-# Claude Code
 claude mcp add openreality -- npx -y openreality-mcp serve
 
-# Codex
 codex mcp add openreality -- npx -y openreality-mcp serve
 ```
 
@@ -95,7 +99,7 @@ Scan a room with your phone at [open-reality.io](https://open-reality.io), or ju
 your assistant to upload a video file. Full per-client setup:
 [open-reality.io/mcp](https://open-reality.io/mcp).
 
-## 💬 Things you can ask
+## Examples
 
 Once connected, talk to your assistant like this:
 
@@ -109,22 +113,7 @@ Once connected, talk to your assistant like this:
 
 > "Export this scan as robot-training data and save the zip locally."
 
-<p align="center">
-  <img src="https://github.com/reality-opened/openreality/releases/download/demo-assets-v1/demo.gif" alt="A Codex session driving Open Reality beside a synchronized 3D scene visualization: upload, honest relative units, calibration to metres, robot-data export" width="800" />
-  <br/>
-  <sub>A real Codex session against the built-in offline simulator, shown beside a synchronized fixture visualization and rendered from <a href="docs/demo/demo.tape">docs/demo/demo.tape</a> with <a href="https://github.com/charmbracelet/vhs">VHS</a>.</sub>
-</p>
-
-<p align="center">
-  <video width="800" controls>
-    <source src="docs/demo/composite-test.mp4" type="video/mp4" />
-    Your browser does not support the video tag.
-  </video>
-  <br/>
-  <sub>Composite test demonstration video.</sub>
-</p>
-
-## 🏠 Run it yourself
+## Self Hosting
 
 The whole workflow is self-hostable. Read
 [`server/docs/self-hosting.md`](server/docs/self-hosting.md); the short version:
@@ -151,7 +140,7 @@ your login, and the MCP client connects with `OPENREALITY_URL` plus that token.
 > terms. For commercial use, use the hosted service (which runs a commercially
 > licensed model) or get your own license from the model owners.
 
-## 📦 What's in this repo
+## Repo index
 
 | Directory | What it is | Ships as |
 |---|---|---|
@@ -163,7 +152,7 @@ your login, and the MCP client connects with `OPENREALITY_URL` plus that token.
 by hand; each carries a `MIRROR.md` that says exactly what is included and how
 it is synced. `mcp/` is developed in this repo directly.
 
-## 🧠 How it works
+## Technical details
 
 ```mermaid
 flowchart LR
@@ -180,15 +169,6 @@ written to your disk, never pasted into the AI's context. Server refusals and
 uncertainty labels reach the AI unedited, so it cannot pretend a relative
 number is metres.
 
-## 🧑‍💻 Develop
-
-```bash
-cd mcp && npm install && npm test        # 59 tests: unit, contract, lifecycle, end-to-end
-cd server && python -m pytest tests/     # 1200+ GPU-free tests
-cd mcp && npm run simulator              # fake backend on :8973, no GPU or account needed
-```
-
-Every push runs all three suites in CI.
 
 ## 🤝 Contributing
 
@@ -197,7 +177,7 @@ here directly; fixes to `server/` and `core/` are folded back into the private
 working repos and re-synced out. If you self-host and something breaks, an
 issue with your logs is a gift: the self-host paths are young.
 
-## ⚖️ License
+##  License
 
 [BSD-2-Clause](LICENSE) for everything in this repository. Third-party models
 are fetched from their owners under their own licenses (see the licensing note

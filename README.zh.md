@@ -36,9 +36,15 @@
 ---
 
 <p align="center">
-  <img src="https://github.com/reality-opened/web-assets/releases/download/v1/vggt_slam_demo.gif" alt="手持手机视频的实时 3D 重建" width="680" />
+  <img src="docs/demo/demo-gif-v1.gif" alt="演示 v1：Claude Code 驱动 Open Reality 的会话，右侧是同步的 3D 场景面板：安装、上传、诚实的相对单位、校准成米、导出机器人数据" width="900" />
   <br/>
-  <sub>手持视频的实时重建：相机轨迹和 3D 场景同步生长。</sub>
+  <sub>演示 v1：一段针对内置离线模拟器的真实 Claude Code（Opus）会话，右侧是同步的场景面板。视频：<a href="docs/demo/demo-video-v1.mp4">docs/demo/demo-video-v1.mp4</a>。由 <a href="docs/demo/">docs/demo/</a> 通过 <a href="https://github.com/charmbracelet/vhs">VHS</a> 渲染。</sub>
+</p>
+
+<p align="center">
+  <img src="https://github.com/reality-opened/web-assets/releases/download/v1/vggt_slam_demo.gif" alt="手持手机视频的实时 3D 重建（VGGT-SLAM）" width="680" />
+  <br/>
+  <sub>手持视频的实时重建：相机轨迹和 3D 场景同步生长。扫描演示与最初的技术思路来自 <a href="https://github.com/MIT-SPARK/VGGT-SLAM">VGGT-SLAM</a>（Dominic Maggio、Hyungtae Lim、Luca Carlone，MIT SPARK 实验室）；Open Reality 的重建核心建立在他们的工作之上。</sub>
 </p>
 
 ## ✨ 它能做什么
@@ -60,7 +66,7 @@
 
 ```bash
 # Claude Code
-claude mcp add openreality -- npx -y openreality-mcp serve
+claude mcp add --scope user openreality -- npx -y openreality-mcp serve
 
 # Codex
 codex mcp add openreality -- npx -y openreality-mcp serve
@@ -107,12 +113,6 @@ npx -y openreality-mcp login
 > “规划一条从门到书桌的路径，并描述它。”
 
 > “把这个扫描导出成机器人训练数据，把 zip 存到本地。”
-
-<p align="center">
-  <img src="https://github.com/reality-opened/openreality/releases/download/demo-assets-v1/demo.gif" alt="Claude Code 驱动 Open Reality 的真实会话：上传、诚实的相对单位、校准成米、导出机器人数据" width="800" />
-  <br/>
-  <sub>一段针对内置离线模拟器的真实 Claude Code 会话，由 <a href="docs/demo/demo.tape">docs/demo/demo.tape</a> 通过 <a href="https://github.com/charmbracelet/vhs">VHS</a> 渲染。</sub>
-</p>
 
 ## 🏠 自己部署
 

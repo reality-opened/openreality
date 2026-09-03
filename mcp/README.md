@@ -35,8 +35,11 @@ guardrails, or storage logic is duplicated here.
 ## Install: Claude Code
 
 ```bash
-claude mcp add openreality -- npx -y openreality-mcp serve
+claude mcp add --scope user openreality -- npx -y openreality-mcp serve
 ```
+
+`--scope user` registers the server for every project on your machine. Drop
+the flag to register it for the current folder only (Claude Code's default).
 
 or in a project `.mcp.json` (see [`.mcp.json.example`](.mcp.json.example)):
 

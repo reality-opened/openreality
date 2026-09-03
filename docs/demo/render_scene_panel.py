@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the synchronized 3D panel for the Codex demo.
+"""Render the synchronized 3D panel for the CLI demo (any agent).
 
 With ``--splat``, the panel reads positions and colors from an actual ASCII or
 binary little-endian PLY and draws the measured endpoints on that geometry. If
@@ -25,7 +25,7 @@ from pathlib import Path
 
 import numpy as np
 
-BG = "#071c15"
+BG = "#071c15"  # default; overridden by --bg to match the terminal theme
 GOLD = "#d4a017"
 GOLD_BRIGHT = "#f0c75e"
 CORAL = "#e07070"
@@ -256,6 +256,8 @@ def view_bounds(points, point_a, point_b):
 
 
 def render(args):
+    global BG
+    BG = args.bg
     try:
         import matplotlib
 
@@ -313,7 +315,9 @@ def render(args):
                 )
 
             label = None
-            if t < args.t_cloud:
+            if t < args.t_start:
+                status, status_color = "no scan yet", INK
+            elif t < args.t_cloud:
                 status, status_color = "reconstructing…", INK
             elif t < args.t_measure:
                 status, status_color = f"scan {args.scan_id} persisted", GREEN
@@ -378,7 +382,7 @@ def render(args):
             ],
             check=True,
         )
-        print(f"wrote {args.composite} (Codex + scene)")
+        print(f"wrote {args.composite} (terminal + scene)")
 
 
 def parse_args():
@@ -387,6 +391,8 @@ def parse_args():
     parser.add_argument("--fps", type=int, default=12)
     parser.add_argument("--width", type=int, default=800)
     parser.add_argument("--height", type=int, default=700)
+    parser.add_argument("--t-start", type=float, default=0.0,
+                        help="second at which the upload prompt is sent; the panel is idle before it")
     parser.add_argument("--t-cloud", type=float, required=True)
     parser.add_argument("--t-measure", type=float, required=True)
     parser.add_argument("--t-metric", type=float, required=True)
@@ -402,6 +408,7 @@ def parse_args():
     parser.add_argument("--scan-id", default="sim-scan-01")
     parser.add_argument("--elevation", type=float, default=18)
     parser.add_argument("--azimuth", type=float, default=32)
+    parser.add_argument("--bg", default=BG, help="panel background, hex; match the terminal theme")
     parser.add_argument("--ffmpeg", default="ffmpeg")
     parser.add_argument("--out", default="panel.mp4")
     parser.add_argument("--terminal", help="VHS terminal MP4 to place on the left")
