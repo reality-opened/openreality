@@ -108,6 +108,7 @@ export function apply(ctx: Context): void {
     'agent_annotate',
     {
       title: 'Run the annotation agent',
+      annotations: { readOnlyHint: false, destructiveHint: false },
       description:
         'Start the five-phase scene annotation run (survey → labels → description → ' +
         'dimensions → key features) on the server-side scene agent. 202 {run_id}; one active ' +
@@ -134,6 +135,7 @@ export function apply(ctx: Context): void {
     'agent_replay',
     {
       title: 'Replay a recorded run',
+      annotations: { readOnlyHint: false, destructiveHint: false },
       description:
         'Re-serve a recorded run\'s persisted event log as a new (replay-badged, $0) run. ' +
         'Use for reviewing what an earlier run found without spending LLM calls.',
@@ -159,6 +161,7 @@ export function apply(ctx: Context): void {
     'agent_pilot',
     {
       title: 'Run the pilot agent',
+      annotations: { readOnlyHint: false, destructiveHint: false },
       description:
         'Give the pilot agent a free-text instruction (navigate/inspect flows; tools: ' +
         'list_scene_objects, plan_path, measure_distance). 202 {run_id}; poll agent_run_events.',
@@ -183,6 +186,7 @@ export function apply(ctx: Context): void {
     'agent_chat',
     {
       title: 'Chat with the scene agent',
+      annotations: { readOnlyHint: false, destructiveHint: false },
       description:
         'One chat turn with the scene agent (its own bounded run; the server agent may call ' +
         'its scene tools mid-turn). By default waits for the run to finish and returns the ' +

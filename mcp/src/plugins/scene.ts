@@ -335,6 +335,7 @@ export function apply(ctx: Context): void {
     'scene_anchor',
     {
       title: 'Anchor the scene to metres',
+      annotations: { readOnlyHint: false, destructiveHint: false },
       description:
         'Metric-anchor calibration (POST /anchor): two picked world points + their real ' +
         'distance in metres. Non-destructive (writes NEW derived/anchor/* artifacts + the ' +
@@ -444,6 +445,7 @@ export function apply(ctx: Context): void {
     'scene_lod_build',
     {
       title: 'Build LOD variants',
+      annotations: { readOnlyHint: false, destructiveHint: false },
       description:
         'Spawn the LOD decimation job (POST /lod → 202 {job_id}; 409 lod_job_active when one ' +
         'is already running). Poll with workspace_job_wait.',
@@ -483,6 +485,7 @@ export function apply(ctx: Context): void {
     'scene_imported_objects_run',
     {
       title: 'Cluster imported-splat objects',
+      annotations: { readOnlyHint: false, destructiveHint: false },
       description:
         'Cluster an imported splat\'s geometry into facts.objects (POST /imported_objects). ' +
         'Labels carry geometry/synthetic-view provenance — confidence 0.0 is honest, not a bug.',
@@ -504,6 +507,7 @@ export function apply(ctx: Context): void {
     'scene_object_complete',
     {
       title: 'Complete an object to 3D',
+      annotations: { readOnlyHint: false, destructiveHint: false },
       description:
         'SAM-3D-Objects mesh completion for a segmented object (POST /objects/<uid>/complete ' +
         '→ 202 {job_id}, broker-thread lane). Poll with scene_job_wait. Output is GENERATED ' +
@@ -526,6 +530,7 @@ export function apply(ctx: Context): void {
     'scene_object_variants',
     {
       title: 'Generate object variants',
+      annotations: { readOnlyHint: false, destructiveHint: false },
       description:
         'TRELLIS variant generation for a completed object (POST /objects/<uid>/variants → ' +
         '202 {job_id}). Optional body fields pass through (see server docs). GENERATED assets.',
@@ -552,6 +557,7 @@ export function apply(ctx: Context): void {
     'scene_segment',
     {
       title: 'Segment an object (advanced)',
+      annotations: { readOnlyHint: false, destructiveHint: false },
       description:
         'SAM-3 click segmentation (POST /segment). Advanced: the body must match the server ' +
         'contract (click point + view selection — see routes_sam3d.py / the OS UI). Provided ' +
@@ -620,6 +626,7 @@ export function apply(ctx: Context): void {
     'scene_share_access',
     {
       title: 'What each share link was used for',
+      annotations: { readOnlyHint: true },
       description:
         'Owner-only read of the share-link access log (GET /share/access): per minted link ' +
         '(access_id) — opened, request count, visits (new visit after 30 min idle), ' +
@@ -648,6 +655,7 @@ export function apply(ctx: Context): void {
     'scene_share',
     {
       title: 'Mint a read-only share link',
+      annotations: { readOnlyHint: false, destructiveHint: false },
       description:
         'Mint a read-only, single-scene share token + embed URL (POST /share; default TTL ' +
         '30 days). Share tokens can NEVER reach the OS feature routes — viewer only.',

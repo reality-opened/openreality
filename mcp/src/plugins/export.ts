@@ -69,6 +69,7 @@ export function apply(ctx: Context): void {
     'export_prepare',
     {
       title: 'Build an export',
+      annotations: { readOnlyHint: false, destructiveHint: false },
       description:
         'Build the export zip as a background job (POST /demo/export/prepare → 202 {job_id}; ' +
         '409 export_job_active when one is running). With wait=true (default) polls the job and ' +

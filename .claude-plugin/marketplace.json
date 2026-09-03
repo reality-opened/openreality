@@ -1,0 +1,17 @@
+{
+  "name": "openreality",
+  "owner": {
+    "name": "reality-opened",
+    "url": "https://open-reality.io"
+  },
+  "description": "Open Reality for Claude Code: phone video to an AI-queryable 3D scene (measure, plan paths, export robot-training data).",
+  "version": "0.3.1",
+  "plugins": [
+    {
+      "name": "openreality",
+      "source": "./mcp",
+      "description": "The openreality MCP server (41 tools) plus the workflow skill. Install, then run `npx -y openreality-mcp login` once.",
+      "version": "0.3.1"
+    }
+  ]
+}

@@ -10,3 +10,6 @@ third_party/
 docs/demo/diag/
 docs/demo/build/
 docs/demo/out/
+
+# Claude desktop extension build output (mcp/scripts/build-mcpb.sh)
+mcp/dist-mcpb/

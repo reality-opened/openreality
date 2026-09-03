@@ -89,6 +89,22 @@ or `~/.cursor/mcp.json`:
 
 </details>
 
+<details>
+<summary><b>Claude Code plugin / Claude desktop one-click extension</b> (click to expand)</summary>
+
+Claude Code plugin (the MCP server plus the workflow skill in one step):
+
+```
+/plugin marketplace add reality-opened/openreality
+/plugin install openreality@openreality
+```
+
+Claude desktop extension: download `openreality-mcp-<version>.mcpb` from the
+[latest release](https://github.com/reality-opened/openreality/releases/latest)
+and double-click it, or drag it into the Claude desktop window. No terminal needed.
+
+</details>
+
 Then sign in once (opens your browser, stores a revocable API key on your machine):
 
 ```bash
@@ -169,6 +185,20 @@ written to your disk, never pasted into the AI's context. Server refusals and
 uncertainty labels reach the AI unedited, so it cannot pretend a relative
 number is metres.
 
+The measurement rule is explained in
+[Why our 3D tools refuse to say "metres" until you prove it](docs/posts/relative-units-are-not-metres.md).
+
+## 🙏 Acknowledgements
+
+Open Reality stands on other people's research and code. Thank you to:
+
+- [VGGT-SLAM](https://github.com/MIT-SPARK/VGGT-SLAM) by Dominic Maggio, Hyungtae Lim and Luca Carlone (MIT SPARK Lab). The reconstruction core in `core/` is the VGGT-SLAM 2.0 line, and the scan demo above is theirs.
+- [VGGT](https://github.com/facebookresearch/vggt) (Meta AI), the feed-forward 3D backbone a self-hosted server fetches under its own licence (see the note above).
+- [Depth Anything V2](https://github.com/DepthAnything/Depth-Anything-V2), the metric-depth model behind our scale-drift correction between map segments.
+- [gsplat](https://github.com/nerfstudio-project/gsplat) from the Nerfstudio project, the optional GPU refinement in our splat export.
+- [SAM 3](https://github.com/facebookresearch/sam3) (Meta AI) for segmentation, and SAM 3D Objects and [TRELLIS](https://github.com/microsoft/TRELLIS) (Microsoft) for object completion and variants on the hosted service.
+- [LeRobot](https://github.com/huggingface/lerobot) (Hugging Face), NVIDIA [GR00T](https://github.com/NVIDIA/Isaac-GR00T) and Isaac Sim, whose dataset and scene formats our robot-training exports target.
+- [GTSAM](https://github.com/borglab/gtsam) for factor-graph optimization, [cordis](https://github.com/cordiverse/cordis) for the plugin runtime, and the [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk).
 
 ## 🤝 Contributing
 
