@@ -218,11 +218,6 @@ cd mcp && npm run simulator              # 假后端跑在 :8973，不需要 GPU
 [`server/docs/self-hosting.md`](server/docs/self-hosting.md)）。
 
 ---
-
-<p align="center">
-  <a href="https://www.star-history.com/#reality-opened/openreality&Date"><img src="https://api.star-history.com/svg?repos=reality-opened/openreality&type=Date" alt="Star 历史" width="600" /></a>
-</p>
-
 <p align="center">
   <sub>由 <a href="https://github.com/reality-opened">reality-opened</a> 打造 · <a href="https://open-reality.io">open-reality.io</a></sub>
 </p>

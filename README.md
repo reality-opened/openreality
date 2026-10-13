@@ -3,9 +3,8 @@
 </p>
 
 <p align="center">
-  <b>Scan a room with your phone. Ask your AI assistant about it.</b><br/>
-  Open Reality turns plain video into a 3D scene your AI can measure, navigate,
-  and export as robot-training data. Works from Claude Code, Claude desktop, Codex, and Cursor.
+  <b>The Agentic OS for any hardware</b><br/>
+  Open Reality gives your AI agent the ability to use any hardware. Vision + Action.
 </p>
 
 <p align="center">
@@ -215,9 +214,6 @@ above and [`server/docs/self-hosting.md`](server/docs/self-hosting.md)).
 
 ---
 
-<p align="center">
-  <a href="https://www.star-history.com/#reality-opened/openreality&Date"><img src="https://api.star-history.com/svg?repos=reality-opened/openreality&type=Date" alt="Star history" width="600" /></a>
-</p>
 
 <p align="center">
   <sub>Built by <a href="https://github.com/reality-opened">reality-opened</a> · <a href="https://open-reality.io">open-reality.io</a></sub>
