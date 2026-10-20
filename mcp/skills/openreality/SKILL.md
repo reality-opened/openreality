@@ -27,7 +27,9 @@ recordings.
 5. **Artifacts go to disk, never into context**: `artifact_fetch` / `artifact_fetch_splat`
    return local file paths. Exports: `export_manifest` (dry-run) → `export_prepare` →
    `artifact_fetch` of the returned key. Formats: `openreality`, `groot_lerobot_v2`,
-   `isaac_usd`.
+   `isaac_usd`, `mujoco_mjcf`. For MuJoCo, `export_mujoco` does all of it in one call and
+   returns the unpacked `scene.xml` path. Both simulator formats need a metric anchor
+   (`scene_anchor` first); MuJoCo collision is a floor plane + detected-object boxes only.
 
 ## Honesty doctrine (non-negotiable — mirrors the product's own guardrails)
 

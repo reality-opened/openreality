@@ -114,7 +114,7 @@ export function renderCard(scene: PersistedScene, manifest: OreosManifest): stri
   }
   lines.push('');
   lines.push(
-    `_Routes: measure/nav/agents via the scene tools; exports via export_prepare (formats: openreality, groot_lerobot_v2, isaac_usd). Manifest key: ${OREOS_MANIFEST_KEY}; agent events persist under derived/demo/agent_runs/. Paths built from ${Object.keys(OREOS_REST_PATHS).length} contract routes._`,
+    `_Routes: measure/nav/agents via the scene tools; exports via export_prepare (formats: openreality, groot_lerobot_v2, isaac_usd, mujoco_mjcf) or export_mujoco (one call: build + download + unpack scene.xml). Manifest key: ${OREOS_MANIFEST_KEY}; agent events persist under derived/demo/agent_runs/. Paths built from ${Object.keys(OREOS_REST_PATHS).length} contract routes._`,
   );
   return lines.join('\n');
 }
