@@ -1,4 +1,4 @@
-export const DEFAULT_SCANS = 2;
+export const DEFAULT_SCANS = 20;
 
 /** Claims carried by a read-only scene share token (embed delivery). The server signs
  *  these as an HS256 JWT under a distinct issuer; the embed page treats the token as an

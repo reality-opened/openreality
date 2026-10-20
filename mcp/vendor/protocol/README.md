@@ -16,8 +16,8 @@ public repo is self-contained.
 |---|---|
 | Upstream repo | `reality-opened/web` (private) |
 | Upstream path | `packages/protocol/*.ts` (implementation files; tests stay upstream) |
-| Synced at commit | `e6dd262` (web main, 2026-09-01) |
-| Last upstream change to the package | share-access + event additions (rest.ts/events.ts/types.ts, 2026-08) |
+| Synced at commit | `b8ac59f` (web main, 2026-10-20) |
+| Last upstream change to the package | `mujoco_mjcf` export format + `mujoco_unavailable` (exportHub.ts, web #37, 2026-10-20); free-allowance copy (auth.ts) |
 | Local modifications | none |
 
 ## Sync procedure

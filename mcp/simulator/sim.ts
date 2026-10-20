@@ -288,7 +288,52 @@ function activeRun(runs: Map<string, SimRun> | undefined): SimRun | null {
   return null;
 }
 
+/** The simulator formats — metric-gated on the real server (409 metric_scale_required). */
+const SIM_FORMATS = new Set(['isaac_usd', 'mujoco_mjcf']);
+
+/** A MuJoCo export tree with REAL scene.xml + manifest.json bodies, so a client that unpacks
+ *  the zip (export_mujoco) reads the same shapes the server writes. */
+function mujocoFiles(scene: PersistedScene, scale: number, scaleSource: string): Array<{ path: string; data: Buffer }> {
+  const dir = `${scene.scan_id}/mujoco`;
+  const xml = [
+    `<mujoco model="openreality_${scene.scan_id}">`,
+    '  <compiler angle="radian" meshdir="assets" autolimits="true" />',
+    '  <option gravity="0 0 -9.81" />',
+    '  <worldbody>',
+    '    <geom name="floor" type="plane" group="0" size="5 5 0.5" />',
+    '  </worldbody>',
+    '</mujoco>',
+    '',
+  ].join('\n');
+  const manifest = {
+    schema_version: 'openreality-mujoco/0.1',
+    scan_id: scene.scan_id,
+    fps: 10,
+    num_keyframes: 0,
+    scene_xml: 'scene.xml',
+    mesh_obj: null,
+    trajectory_csv: 'trajectory.csv',
+    replay_script: 'replay.py',
+    alignment: { scale, scale_source: scaleSource, metric: true, up_axis: 'Z', meters_per_unit: 1, gravity_aligned: true },
+    geometry: { visual_mesh: false, num_vertices: 0, num_faces: 0, reconstruction: 'none(points)', mesh_collision: false, floor_plane: true, num_object_boxes: 0 },
+    objects: [],
+    camera: { body: 'scan_camera', camera: 'scan_camera', fovy_deg: 45, fovy_source: 'default' },
+    collision_note: 'MuJoCo collides a mesh as its convex hull, so the scan mesh is VISUAL ONLY. (simulator)',
+    validated_with_mujoco: null,
+    notes: 'simulator export: floor plane only',
+  };
+  return [
+    { path: `${dir}/scene.xml`, data: Buffer.from(xml, 'utf8') },
+    { path: `${dir}/trajectory.csv`, data: Buffer.from('frame,time_s,x,y,z,qw,qx,qy,qz\n', 'utf8') },
+    { path: `${dir}/replay.py`, data: Buffer.from('# simulator stub\n', 'utf8') },
+    { path: `${dir}/manifest.json`, data: Buffer.from(JSON.stringify(manifest, null, 2), 'utf8') },
+  ];
+}
+
 function exportTree(scene: PersistedScene, format: string): ManifestTreeEntry[] {
+  if (format === 'mujoco_mjcf') {
+    return mujocoFiles(scene, 1, 'simulator').map((f) => ({ path: f.path, size: f.data.length }));
+  }
   const p = format === 'groot_lerobot_v2' ? `${scene.scan_id}_groot_lerobot_v2` : scene.scan_id;
   const base: ManifestTreeEntry[] = [
     { path: `${p}/cloud.npz`, size: 4096 },
@@ -1122,7 +1167,7 @@ export function startSimulator(opts: SimulatorOptions = {}): Promise<RunningSimu
       const format = url.searchParams.get('format') ?? 'openreality';
       const sourceKey = url.searchParams.get('source') ?? 'original';
       const preparedKey = `${scanId}:${format}:${sourceKey}`;
-      const metricBlocked = format === 'isaac_usd' && !anchored;
+      const metricBlocked = SIM_FORMATS.has(format) && !anchored;
 
       if (rest[2] === 'manifest' && method === 'GET') {
         const tree = exportTree(scene, format);
@@ -1132,7 +1177,7 @@ export function startSimulator(opts: SimulatorOptions = {}): Promise<RunningSimu
           source_key: sourceKey,
           complete: !metricBlocked,
           absent: metricBlocked
-            ? [{ component: 'metric scale', reason: 'isaac_usd is metric-gated: anchor the scene first' }]
+            ? [{ component: 'metric scale', reason: `${format} is metric-gated: anchor the scene first` }]
             : [],
           tree,
           file_count: tree.length,
@@ -1144,7 +1189,7 @@ export function startSimulator(opts: SimulatorOptions = {}): Promise<RunningSimu
           tasks: null,
           zip_available: !metricBlocked,
           zip_blocked_reason: metricBlocked ? 'metric_gate: no anchor on this scene' : null,
-          ...(format === 'isaac_usd' && anchored
+          ...(SIM_FORMATS.has(format) && anchored
             ? { scale: { scale, scale_source: scaleSource, anchor_scale: scale } }
             : {}),
         };
@@ -1155,15 +1200,31 @@ export function startSimulator(opts: SimulatorOptions = {}): Promise<RunningSimu
         const body = JSON.parse((await readBody(req)).toString('utf8') || '{}') as {
           format?: string;
           source?: string;
+          force?: boolean;
         };
         const fmt = body.format ?? format;
         const pKey = `${scanId}:${fmt}:${body.source ?? 'original'}`;
-        if (fmt === 'isaac_usd' && !anchored) {
-          return sendJson(res, 422, { error: 'export_blocked', message: 'metric_gate: no anchor on this scene' });
+        if (SIM_FORMATS.has(fmt) && !anchored) {
+          // Mirrors the server's prepare-time gate (routes_export_job._metric_gate_error).
+          return sendJson(res, 409, {
+            error: 'metric_scale_required',
+            format: fmt,
+            message: 'Run Metric anchor first — the simulator export needs a metric scale.',
+          });
         }
         const existing = state.prepared.get(pKey);
         if (existing?.status === 'running') {
           return sendJson(res, 409, { error: 'export_job_active', job_id: existing.job_id });
+        }
+        // Already prepared → 200 short-circuit, like the server (pass force to rebuild).
+        if (existing?.status === 'ready' && existing.artifact && !body.force) {
+          return sendJson(res, 200, {
+            status: 'ready',
+            scan_id: scanId,
+            format: fmt,
+            artifact: existing.artifact,
+            message: 'a current export is already prepared; pass force to rebuild',
+          });
         }
         state.seq.job += 1;
         const jobId = `job-${String(state.seq.job).padStart(3, '0')}`;
@@ -1180,7 +1241,11 @@ export function startSimulator(opts: SimulatorOptions = {}): Promise<RunningSimu
             { job_id: jobId, status: 'done', scan_id: scanId, tree_bytes: treeBytes, file_count: tree.length },
           ],
           onDone: () => {
-            const zip = buildZip(tree.map((e) => ({ path: e.path, data: Buffer.alloc(Math.min(e.size, 64), 0x5a) })));
+            const zip = buildZip(
+              fmt === 'mujoco_mjcf'
+                ? mujocoFiles(scene, scale, scaleSource)
+                : tree.map((e) => ({ path: e.path, data: Buffer.alloc(Math.min(e.size, 64), 0x5a) })),
+            );
             const key = `derived/demo/export/${fmt}.zip`;
             bundle.derived.set(key, zip);
             state.prepared.set(pKey, {

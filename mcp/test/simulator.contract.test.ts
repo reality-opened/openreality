@@ -9,6 +9,7 @@ import {
   REST_PATHS,
   isAgentRunEventsResponse,
   isExportManifestResponse,
+  isMetricScaleRequired,
   isListApiKeysResponse,
   isMeasureResponse,
   isMintApiKeyResponse,
@@ -137,8 +138,12 @@ describe('simulator speaks the protocol', () => {
     expect(isExportManifestResponse(manifest)).toBe(true);
     expect((manifest as { zip_available: boolean }).zip_available).toBe(false);
     expect((manifest as { zip_blocked_reason: string | null }).zip_blocked_reason).toMatch(/metric_gate/);
-    const prep = await post(OREOS_REST_PATHS.SCENE_EXPORT_PREPARE(scan_id), { format: 'isaac_usd' });
-    expect(prep.status).toBe(422);
+    for (const format of ['isaac_usd', 'mujoco_mjcf'] as const) {
+      const prep = await post(OREOS_REST_PATHS.SCENE_EXPORT_PREPARE(scan_id), { format });
+      // The real server refuses at prepare time, before spawning a container.
+      expect(prep.status).toBe(409);
+      expect(isMetricScaleRequired(prep.json)).toBe(true);
+    }
   });
 
   it('mints an API key with isMintApiKeyResponse validating the response, and refuses an ork_ bearer minting another (403 api_key_cannot_mint)', async () => {

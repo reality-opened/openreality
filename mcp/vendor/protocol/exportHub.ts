@@ -1,5 +1,5 @@
 /**
- * Export hub — the real, LIVE contract for the three robot-training export formats a
+ * Export hub — the real, LIVE contract for the robot-training export formats a
  * finished scan can produce (see `platform/contracts/export-format.md` and
  * `server/docs/dataset-export.md` §4/§5, `server/docs/isaac-export.md`):
  *
@@ -7,6 +7,15 @@
  *                            grounding sidecar). The format we own; source of truth.
  *   2. `groot_lerobot_v2` — a thin transcode of (1) into the GR00T-LeRobot v2 layout.
  *   3. `isaac_usd`        — an Isaac Sim/Lab USD scene (metric + gravity-aligned).
+ *   4. `mujoco_mjcf`      — a MuJoCo scene (`scene.xml` + `assets/scan_mesh.obj` +
+ *                            `trajectory.csv` + `replay.py` + `manifest.json`). Same metric gate
+ *                            and same aligned mesh as Isaac — both are subclasses of the server's
+ *                            shared simulator export (`server/docs/sim-export.md`). Collision is
+ *                            primitives only (floor plane + upright object boxes); the scan mesh
+ *                            is visual. Deps missing -> 501 `{error:"mujoco_unavailable"}`.
+ *                            Reached through the prepared-export job + manifest routes (the MCP's
+ *                            `export_mujoco`); NOT in `EXPORT_FORMATS` yet, because the OS export
+ *                            panel's gate logic is still keyed on `isaac_usd`.
  *
  * `GET /api/scenes/<scan_id>/export?format=<format>` is now a real, deployed broker route
  * (`server/app.py::export_scene_route`) — GPU-free, no live Solver:
@@ -14,7 +23,7 @@
  *   - `openreality` / `groot_lerobot_v2` -> 200, `application/zip`, streamed as an attachment
  *     named `scan-<scan_id>-<format>.zip`. There is no JSON success envelope — the response
  *     body IS the zip.
- *   - `isaac_usd` -> now a REAL, wired export (`server/app.py::_export_isaac_usd`): the same
+ *   - `isaac_usd` -> now a REAL, wired export (`server/app.py::_export_sim_scene`): the same
  *     GPU-free broker route authors an Isaac Sim/Lab USD tree (`scene.usd` + `trajectory.usd` +
  *     `manifest.json`) from the persisted geometry and streams it zipped as
  *     `scan-<scan_id>-isaac_usd.zip`. It is GATED on a metric scale — it needs either an explicit
@@ -33,7 +42,15 @@
  *     `{error:"export_failed", message}`.
  */
 
-export type ExportFormat = 'openreality' | 'groot_lerobot_v2' | 'isaac_usd';
+export type ExportFormat = 'openreality' | 'groot_lerobot_v2' | 'isaac_usd' | 'mujoco_mjcf';
+
+/** The simulator formats — metric-gated (409 `metric_scale_required` without a Metric anchor or
+ *  `?scale=`) and built on the server's 64 GB export container. Mirrors the server's
+ *  `server.export.sim.SIM_FORMATS`. */
+export const SIM_EXPORT_FORMATS = ['isaac_usd', 'mujoco_mjcf'] as const satisfies readonly ExportFormat[];
+
+export const isSimExportFormat = (format: string): format is (typeof SIM_EXPORT_FORMATS)[number] =>
+  (SIM_EXPORT_FORMATS as readonly string[]).includes(format);
 
 export interface ExportFormatDescriptor {
   format: ExportFormat;
@@ -57,7 +74,8 @@ export interface ExportFormatDescriptor {
   unavailableReason?: string;
 }
 
-/** Static catalog — the three real formats. Order matches the handoff spec's write-up. */
+/** Static catalog — the formats the export panel renders as cards. Order matches the handoff
+ *  spec's write-up. `mujoco_mjcf` is a real format but not a card yet (see the file header). */
 export const EXPORT_FORMATS: readonly ExportFormatDescriptor[] = [
   {
     format: 'openreality',
@@ -113,9 +131,9 @@ export const sceneExportDownloadFilename = (scanId: string, format: ExportFormat
 
 /** Error codes the real route returns (see file header for the status -> code mapping).
  *  `unknown_derived_key` (404) is returned when a `?source=` selector names a derived artifact
- *  that isn't a real derived key of this scan. `metric_scale_required` (409) and
- *  `isaac_unavailable` (501) are isaac_usd-specific: no metric scale / the deployment lacks the
- *  USD deps. `not_implemented` is retired — isaac_usd is now a real, gated export. */
+ *  that isn't a real derived key of this scan. `metric_scale_required` (409) is the simulator-format gate (isaac_usd,
+ *  mujoco_mjcf: no metric scale); `isaac_unavailable` / `mujoco_unavailable` (501) mean the
+ *  deployment lacks that simulator's deps. `not_implemented` is retired — isaac_usd is now a real, gated export. */
 export type ExportErrorCode =
   | 'invalid_format'
   | 'invalid_request'
@@ -125,7 +143,8 @@ export type ExportErrorCode =
   | 'export_failed'
   | 'unknown_derived_key'
   | 'metric_scale_required'
-  | 'isaac_unavailable';
+  | 'isaac_unavailable'
+  | 'mujoco_unavailable';
 
 /** JSON error body shape for every non-2xx response from the export route. */
 export interface SceneExportErrorResponse {
@@ -143,7 +162,8 @@ function isExportErrorCode(value: unknown): value is ExportErrorCode {
     value === 'export_failed' ||
     value === 'unknown_derived_key' ||
     value === 'metric_scale_required' ||
-    value === 'isaac_unavailable'
+    value === 'isaac_unavailable' ||
+    value === 'mujoco_unavailable'
   );
 }
 
@@ -154,7 +174,13 @@ export function isIsaacUnavailable(body: unknown): boolean {
   return isSceneExportErrorResponse(body) && body.error === 'isaac_unavailable';
 }
 
-/** True for the isaac_usd gate: the scan has no metric scale yet (run Refine → Metric anchor). */
+/** True for the mujoco_mjcf runtime failure where the deployment lacks `mujoco`/`open3d`. */
+export function isMujocoUnavailable(body: unknown): boolean {
+  return isSceneExportErrorResponse(body) && body.error === 'mujoco_unavailable';
+}
+
+/** True for the simulator gate (isaac_usd, mujoco_mjcf): the scan has no metric scale yet (run
+ *  Refine → Metric anchor). */
 export function isMetricScaleRequired(body: unknown): boolean {
   return isSceneExportErrorResponse(body) && body.error === 'metric_scale_required';
 }

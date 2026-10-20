@@ -4,7 +4,7 @@
 desktop, or any MCP client: upload scans into your account, follow
 reconstruction jobs, sync scenes down as context, measure, plan paths, run the
 scene agents, and pull robot-training exports (`openreality` /
-`groot_lerobot_v2` / `isaac_usd`) to disk.
+`groot_lerobot_v2` / `isaac_usd` / `mujoco_mjcf`) to disk.
 
 ```bash
 npm install -g openreality-mcp   # or run it ad hoc with npx
@@ -213,7 +213,7 @@ session.
 | `workspace_*` | list_scenes (sync cursor), upload_video, upload_recording, upload_splat (inline + chunked), job_status, job_wait |
 | `scene_*` | card, list_objects, measure_distance, measure_angle, plan_path, planes, ground_frame, ground_frame_fit, anchor, keyframe_image, synthetic_views, synthetic_view_image, lod, lod_build, imported_objects, imported_objects_run, object_complete, object_variants, segment, job_status, job_wait, share, share_access (who opened a share link, visits, returns, questions) |
 | `agent_*` | annotate, replay, pilot, chat (waits + renders the event transcript), run_events, runs |
-| `export_*` / `artifact_*` | export_manifest, export_prepare, export_status, artifact_fetch, artifact_fetch_splat, artifact_fetch_cloud |
+| `export_*` / `artifact_*` | export_manifest, export_prepare, export_status, export_mujoco, artifact_fetch, artifact_fetch_splat, artifact_fetch_cloud |
 
 Resources: `openreality://scenes` (index) and `openreality://scene/{scan_id}`
 (context card), @-mentionable in Claude Code.

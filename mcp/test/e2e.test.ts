@@ -147,6 +147,7 @@ describe('scan-to-artifact flow over MCP', () => {
       'export_manifest',
       'export_prepare',
       'export_status',
+      'export_mujoco',
       'artifact_fetch',
       'artifact_fetch_splat',
       'scene_share',
@@ -210,6 +211,14 @@ describe('scan-to-artifact flow over MCP', () => {
     });
     expect(man.parsed.zip_available).toBe(false);
     expect(man.parsed.zip_blocked_reason).toMatch(/metric_gate/);
+  });
+
+  it('refuses the MuJoCo export while un-anchored, pointing at scene_anchor', async () => {
+    const res = await call('MuJoCo export (pre-anchor)', 'export_mujoco', { scan_id: scanId });
+    expect(res.isError).toBe(true);
+    expect(res.parsed.http_status).toBe(409);
+    expect(res.parsed.body.error).toBe('metric_scale_required'); // the server body, verbatim
+    expect(res.parsed.next_step).toContain('scene_anchor');
   });
 
   it('anchors the scene and measures in metres', async () => {
@@ -348,6 +357,29 @@ describe('scan-to-artifact flow over MCP', () => {
     const bytes = readFileSync(fetched.parsed.path);
     expect(bytes.subarray(0, 2).toString('latin1')).toBe('PK'); // a real zip
     expect(bytes.byteLength).toBe(fetched.parsed.bytes);
+  });
+
+  it('exports to MuJoCo in one call: scene.xml unpacked on disk, honesty fields carried', async () => {
+    const mj = await call('Export the anchored scene to MuJoCo', 'export_mujoco', {
+      scan_id: scanId,
+      timeout_s: 30,
+      poll_s: 0.05,
+    });
+    expect(mj.isError).toBe(false);
+    expect(mj.parsed.scene_xml).toBe(join(artifactsDir, scanId, 'mujoco', 'scene.xml'));
+    expect(readFileSync(mj.parsed.scene_xml, 'utf8')).toContain('<mujoco');
+    expect(readFileSync(mj.parsed.zip_path).subarray(0, 2).toString('latin1')).toBe('PK');
+    expect(mj.parsed.files).toBe(4);
+    expect(mj.parsed.alignment.metric).toBe(true);
+    expect(mj.parsed.alignment.scale_source).toMatch(/^anchor:/);
+    expect(mj.parsed.collision_note).toContain('convex hull');
+    expect(mj.parsed.load.viewer).toContain('--mjcf=');
+    expect(mj.parsed.job.final.status).toBe('done');
+
+    // A second call reuses the fresh export instead of rebuilding.
+    const again = await call('MuJoCo export again (reuse)', 'export_mujoco', { scan_id: scanId });
+    expect(again.parsed.job.reused).toBe(true);
+    expect(again.parsed.scene_xml).toBe(mj.parsed.scene_xml);
   });
 
   it('fetches the splat to disk and mints a share link', async () => {
