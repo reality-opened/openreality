@@ -12,7 +12,7 @@
   <a href="https://www.npmjs.com/package/openreality-mcp"><img src="https://img.shields.io/npm/v/openreality-mcp?color=cb3837&logo=npm&label=openreality-mcp" alt="npm" /></a>
   <a href="https://github.com/reality-opened/openreality/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/reality-opened/openreality/ci.yml?branch=main&logo=github&label=CI" alt="CI" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-BSD--2--Clause-blue" alt="license" /></a>
-  <img src="https://img.shields.io/badge/MCP-41%20个工具-8A2BE2" alt="MCP tools" />
+  <img src="https://img.shields.io/badge/MCP-42%20个工具-8A2BE2" alt="MCP tools" />
   <img src="https://img.shields.io/badge/自托管-你的%20GPU%20或%20Modal-0fa573" alt="self-host" />
   <img src="https://img.shields.io/badge/node-%E2%89%A520-339933?logo=node.js&logoColor=white" alt="node" />
   <img src="https://img.shields.io/badge/python-3.11-3776AB?logo=python&logoColor=white" alt="python" />
@@ -54,9 +54,9 @@
 | 🎥 &nbsp;**视频进，3D 场景出** | 上传一段手机视频，几分钟后得到一个持久保存的 3D 场景：几何结构、相机轨迹、检测到的物体，还有一份文字报告。 |
 | 📏 &nbsp;**诚实的测量** | 测任意两点间的距离和角度。只有在你用一段真实距离校准之后，数字才会以米为单位；在那之前它们会被明确标注为相对单位，绝不冒充。 |
 | 🧭 &nbsp;**路径规划** | 在扫描出的可通行空间里规划一条到某个物体或某个点的路线；目标不可达时会诚实报错。 |
-| 🤖 &nbsp;**机器人训练数据导出** | 一条命令把扫描变成 LeRobot / GR00T 风格的数据集，或 Isaac Sim 场景（托管服务）。 |
+| 🤖 &nbsp;**机器人训练数据导出** | 一条命令把扫描变成 LeRobot / GR00T 风格的数据集，或 Isaac Sim / MuJoCo 场景（托管服务）。 |
 | 🕵️ &nbsp;**场景智能体** | 服务端智能体自动巡视、标注并回答关于场景的问题，预算有上限，事件日志可回放。 |
-| 🛠️ &nbsp;**给 AI 的 41 个工具** | 一切都通过 MCP（Model Context Protocol，AI 助手调用外部工具的标准协议）暴露出来，Claude、Codex、Cursor 都能用自然语言驱动整个流程。 |
+| 🛠️ &nbsp;**给 AI 的 42 个工具** | 一切都通过 MCP（Model Context Protocol，AI 助手调用外部工具的标准协议）暴露出来，Claude、Codex、Cursor 都能用自然语言驱动整个流程。 |
 | 🧪 &nbsp;**离线模拟器** | 一个假后端用内置数据模拟完整流程，开发和演示不需要账号，也不需要 GPU。 |
 | 🏠 &nbsp;**可以自托管** | 完整服务端可以跑在你自己的 GPU 机器或你自己的 Modal 账号上，不需要我们的账号。 |
 
@@ -158,7 +158,7 @@ MCP 客户端用 `OPENREALITY_URL` 加这个 token 连接。
 
 | 目录 | 是什么 | 发布形式 |
 |---|---|---|
-| [`mcp/`](mcp/) | MCP 服务器：41 个工具、场景资源、离线模拟器和完整测试套件。直接在本仓库开发。 | npm [`openreality-mcp`](https://www.npmjs.com/package/openreality-mcp) |
+| [`mcp/`](mcp/) | MCP 服务器：42 个工具、场景资源、离线模拟器和完整测试套件。直接在本仓库开发。 | npm [`openreality-mcp`](https://www.npmjs.com/package/openreality-mcp) |
 | [`server/`](server/) | 后端：把视频变成持久场景，并通过普通 REST API 提供测量、规划、智能体和导出。 | 源码（公开镜像） |
 | [`core/`](core/) | 3D 重建库：从普通视频做相机跟踪和稠密几何（VGGT-SLAM 2.0 系列），外加公制校准、物体检测和 splat 导出。 | 源码（公开镜像） |
 
@@ -171,7 +171,7 @@ MCP 客户端用 `OPENREALITY_URL` 加这个 token 连接。
 flowchart LR
     A["📱 手机视频"] --> B["服务端：3D 重建<br/>（GPU 任务）"]
     B --> C[("持久场景：<br/>几何 + 物体 + 报告")]
-    C --> D["41 个 MCP 工具"]
+    C --> D["42 个 MCP 工具"]
     D --> E["🤖 Claude / Codex / Cursor"]
     E -->|"测量 · 导航 · 导出"| D
 ```

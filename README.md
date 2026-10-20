@@ -53,9 +53,9 @@
 | 🎥 &nbsp;**Video in, 3D scene out** | Upload a phone video. A few minutes later you have a persistent 3D scene. |
 | 📏 &nbsp;**Measurement** | Distances and angles between any points. Numbers are only called metres after you calibrate with real distance; otherwise relative.|
 | 🧭 &nbsp;**Path planning** | Plan a route through the scanned free space to an object or a point. |
-| 🤖 &nbsp;**Robot-training exports** | Turns a scan into LeRobot / GR00T style datasets or an Isaac Sim scene (hosted service). |
+| 🤖 &nbsp;**Robot-training exports** | Turns a scan into LeRobot / GR00T style datasets or an Isaac Sim or MuJoCo scene (hosted service). |
 | 🕵️ &nbsp;**Scene agents** | Server-side agents that survey, label, and answer questions about a scene. |
-| 🛠️ &nbsp;**41 tools for your AI** | Everything is exposed through MCP. |
+| 🛠️ &nbsp;**42 tools for your AI** | Everything is exposed through MCP. |
 | 🧪 &nbsp;**Offline simulator** | A mock backend fakes the entire workflow with fixture data, so you can develop and demo with no account and no GPU. |
 | 🏠 &nbsp;**Self-hostable** | The full server runs on your own GPU box or your own Modal account, no account with us needed. |
 
@@ -159,7 +159,7 @@ your login, and the MCP client connects with `OPENREALITY_URL` plus that token.
 
 | Directory | What it is | Ships as |
 |---|---|---|
-| [`mcp/`](mcp/) | The MCP server: 41 tools, scene resources, the offline simulator, and a full test suite. Developed here directly. | npm [`openreality-mcp`](https://www.npmjs.com/package/openreality-mcp) |
+| [`mcp/`](mcp/) | The MCP server: 42 tools, scene resources, the offline simulator, and a full test suite. Developed here directly. | npm [`openreality-mcp`](https://www.npmjs.com/package/openreality-mcp) |
 | [`server/`](server/) | The backend: turns videos into persistent scenes and serves measurement, planning, agents, and exports over a plain REST API. | source (public mirror) |
 | [`core/`](core/) | The 3D reconstruction library: camera tracking and dense geometry from ordinary video (the VGGT-SLAM 2.0 line), plus metric calibration, object detection, and splat export. | source (public mirror) |
 
