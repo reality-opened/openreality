@@ -206,7 +206,7 @@ the durable API-key routes against the same `ork_...` wire contract as the real
 broker. [`examples/transcript.md`](examples/transcript.md) is a full recorded
 session.
 
-## Tool surface (41 tools)
+## Tool surface (42 tools)
 
 | Namespace | Tools |
 |---|---|
