@@ -25,6 +25,10 @@ guardrails, or storage logic is duplicated here.
 - **Fully offline development works without an account**:
   `openreality-mcp simulator` fakes the whole workflow with fixture data (see
   below). It does not reconstruct anything.
+- **Hardware you add runs on your machine too**: each device listed in
+  `hardware.json` (a robot arm, for example) has its own MCP server, which
+  openreality-mcp starts as a child process. Device calls never reach the
+  broker; see [Drive hardware](#drive-hardware-optional).
 - The broker contract is plain REST, so `OPENREALITY_URL` can point at any
   deployment that speaks it, **including your own**: the broker
   ([`../server`](../server)) and the SLAM library ([`../core`](../core)) live
@@ -159,6 +163,58 @@ Manage keys with `openreality-mcp keys list` / `openreality-mcp keys revoke
 revoked or unknown key answers every request with a clear "run `login` again"
 error; it never loops retrying.
 
+## Drive hardware (optional)
+
+openreality-mcp can also drive real machines, such as a robot arm, from the
+same session. It works with any device that ships its own MCP server (the
+program that offers the device's controls as tools). List the device in
+`hardware.json` and openreality-mcp starts that program on your machine and
+offers its tools here under the device's name. The SO-101 arm server from
+[reality-opened/artist-agent](https://github.com/reality-opened/artist-agent),
+for example, becomes `arm_status`, `arm_move_to`, `arm_look`, `arm_grasp`,
+`arm_stop` and so on, plus `arm_guide`, which returns the arm's own operating
+rules: units, coordinate frames, and what it refuses and why.
+
+The device stays in charge of its own safety. Its limits, refusals and results
+reach your assistant unedited: openreality-mcp adds no motion logic and never
+retries a refused command.
+
+Create `hardware.json` in the openreality config folder
+(`~/.config/openreality/`, or `OPENREALITY_DIR`), or point
+`OPENREALITY_HARDWARE` at the file:
+
+```json
+{
+  "devices": {
+    "arm": {
+      "command": "C:/Users/you/artist-agent/.venv/Scripts/python.exe",
+      "args": ["server.py"],
+      "cwd": "C:/Users/you/artist-agent",
+      "timeout_s": 900
+    }
+  }
+}
+```
+
+- The key (`arm`) is the device's name and the prefix of its tools: 1 to 16
+  lowercase letters or digits, starting with a letter. The prefixes of the
+  built-in tools (`workspace`, `scene`, `agent`, `export`, `artifact`,
+  `openreality`) are refused.
+- `command`, `args` and `cwd` start the device's MCP server, the same way you
+  would register that server with your MCP client directly. It gets a minimal
+  environment (`PATH`, your home folder and similar); add anything else it
+  needs under `env`.
+- `timeout_s` (default 900) is the longest one device call may take. A full
+  calibration of the arm takes about 6 minutes.
+- The device's server starts together with openreality-mcp, which adds its
+  start-up time (a few seconds for the arm). A device that does not start
+  stops openreality-mcp with an error naming it; remove its entry to run
+  without it.
+- Only one program can hold a device's USB connection at a time, so do not run
+  the device's server in another MCP client while openreality-mcp uses it.
+- If the device's server stops during a session, its tools answer with an
+  error until openreality-mcp restarts.
+
 ## Architecture: an all-plugin [cordis](https://github.com/cordiverse/cordis) app
 
 The server is assembled from cordis plugins around two services; nothing
@@ -172,6 +228,7 @@ src/plugins/scene.ts       scene_* tools
 src/plugins/agent.ts       agent_* tools
 src/plugins/export.ts      export_* / artifact_* tools
 src/plugins/resources.ts   openreality:// resources
+src/plugins/hardware.ts    <device>_* tools      (inject: ['mcp']; one fiber per device in hardware.json)
 src/app.ts               the composition (createApp), and nothing else
 ```
 
@@ -214,6 +271,7 @@ session.
 | `scene_*` | card, list_objects, measure_distance, measure_angle, plan_path, planes, ground_frame, ground_frame_fit, anchor, keyframe_image, synthetic_views, synthetic_view_image, lod, lod_build, imported_objects, imported_objects_run, object_complete, object_variants, segment, job_status, job_wait, share, share_access (who opened a share link, visits, returns, questions) |
 | `agent_*` | annotate, replay, pilot, chat (waits + renders the event transcript), run_events, runs |
 | `export_*` / `artifact_*` | export_manifest, export_prepare, export_status, export_mujoco, artifact_fetch, artifact_fetch_splat, artifact_fetch_cloud |
+| `<device>_*` (optional) | each device in `hardware.json`: its own tools, plus `<device>_guide`; see [Drive hardware](#drive-hardware-optional) |
 
 Resources: `openreality://scenes` (index) and `openreality://scene/{scan_id}`
 (context card), @-mentionable in Claude Code.
@@ -250,7 +308,10 @@ reality-opened) by default, or your own self-hosted server if you set
 `OPENREALITY_URL`. What it sends is exactly the content of the tool calls your
 assistant makes: video files, splat files, or robot recordings you ask it to
 upload; scene identifiers; measurement points; questions for the scene agent.
-It does not read files you did not ask it to upload.
+It does not read files you did not ask it to upload. If you list hardware
+devices in `hardware.json`, the program also starts each device's own program
+on your computer and passes the tool calls meant for that device to it; those
+calls and their results stay on your computer.
 
 **Usage and storage on your computer.** Your sign-in credential is stored in
 `~/.config/openreality/credentials.json` (readable only by your user account).
