@@ -1,7 +1,8 @@
 /**
  * openreality-mcp — CLI entry.
  *
- *   openreality-mcp                 serve MCP over stdio (what Claude Code/desktop run)
+ *   openreality-mcp                 serve MCP over stdio (what Claude Code/desktop run), plus the
+ *                                    devices in hardware.json (src/hardware.ts)
  *   openreality-mcp login           browser sign-in; mints + stores a durable API key
  *   openreality-mcp login --token T validate + store a credential (mints a durable API
  *                                    key from it when the broker supports that)
@@ -23,6 +24,7 @@ import {
 } from '@reality/protocol';
 import { createApp } from './app.js';
 import { loadConfig, type Config } from './config.js';
+import { loadHardware } from './hardware.js';
 import { Session } from './session.js';
 import { ApiClient, ApiError } from './http.js';
 import { startSimulator } from '../simulator/sim.js';
@@ -205,8 +207,12 @@ async function main(): Promise<void> {
   const [cmd = 'serve', ...rest] = process.argv.slice(2);
 
   if (cmd === 'serve') {
-    const ctx = await createApp();
+    const config = loadConfig();
+    const ctx = await createApp(config, loadHardware(config.configDir));
     await ctx.mcp.connect(new StdioServerTransport());
+    // The client ends a session by closing stdin: dispose the app then, so bridged device
+    // servers stop too (their open pipes would otherwise keep this process alive).
+    process.stdin.once('end', () => void ctx.fiber.dispose());
     return; // stdio transport keeps the process alive
   }
 
