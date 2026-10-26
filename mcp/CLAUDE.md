@@ -20,6 +20,10 @@ app**. Read the Architecture section of [README.md](README.md) before changing
 - **Honesty doctrine passes through verbatim**: `units`, `scale_source`,
   `provenance`, `degraded`, and typed server refusals (409/422 bodies) reach
   the model unedited. Never soften or convert them.
+- **Hardware is bridged, never reimplemented.** A device (robot arm, drone)
+  keeps its own MCP server and its own safety checks; `src/plugins/hardware.ts`
+  re-exposes its tools as `<namespace>_*` and forwards calls and results
+  unedited, refusals included. Never add motion logic or retries here.
 - **Artifacts go to disk, never into context**: fetch tools return paths.
 - **Persisted contracts keep historical names**: API routes, `derived/demo/*`
   keys, and `DEMO_*` env fallbacks spell `demo` on purpose; never rename.

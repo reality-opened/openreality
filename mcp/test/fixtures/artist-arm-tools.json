@@ -1,0 +1,439 @@
+{
+  "source": "reality-opened/artist-agent server.py --sim, captured over MCP stdio on 2026-10-24: server info and instructions from initialize, tools from tools/list, replies.release_torque_unconfirmed is the real server's answer to release_torque(which=\"all\") without confirm. replies.look_png_base64 is a 1x1 stand-in image (the real look returns a JPEG of the bench). Served by fake-device.mjs.",
+  "server": {
+    "name": "artist-arm",
+    "version": ""
+  },
+  "instructions": "Drives a real SO-101 arm (5 joints + gripper) watched by a fixed Orbbec RGB-D camera; a person may be nearby.\n\nFrames and units: joints in degrees, gripper as opening percent (0 closed, 100 open). Base frame = the robot\nbase, mm, z up: move_to / move_by take base-frame points. Camera frame = the depth camera, mm, x right, y down,\nz forward: servo_to takes camera-frame points. Image pixels are in the full 1280x720 frame (look(grid=true) labels\nthem). The rig calibration (arm_status.rig_calibration) links camera and base, so find_objects, locate_point and\nfind_marker also give base-frame points that move_to can go to directly (open loop, ~8 mm). If they return a\nframe_note saying the camera moved, base-frame points are withheld: run calibrate_camera, or stay in the camera\nframe with servo_to, which learns the mapping by moving and gets within ~5 mm. calibrate_rig redoes everything\n(joint offsets too) after the motors were recalibrated. A monitor (auto_calibration) compares the camera's view of\nthe gripper with the calibration whenever the arm rests with the jaws as calibrated (gripper at most 40 % open, wrist\nwithin 30 deg of its rest roll): it notes suspect base-frame points, withholds them when the camera has moved, and\nre-fits the camera from those rests by itself.\n\nA session starts from the rest pose: its first tool call (any but stop, release_torque and auto_calibration) first\nparks the arm and closes a wide-open gripper to 20 %, wherever the last session left it (arm_status.session_reset).\n\nEvery motion blocks until it ends and returns a receipt; read its status before the next step. One motion at a\ntime (a second one is refused as busy); stop() works during a motion. Moves that would bring the gripper close\nto the bench, go past a joint limit, or leave the arm stretched out further than the shoulder can lift back up\nare refused before anything moves. Typical reach: arm_status, look,\nfind_objects (or look + locate_point on a pixel), move_to the object's approach_base_mm, then find_marker and\nservo_to for the last few millimetres, small move_by steps while checking with look, grasp; release_torque only\nwith confirm=true.\n",
+  "tools": [
+    {
+      "name": "arm_status",
+      "description": "Joint angles (deg), gripper opening (%), model TCP (base mm) and its height above the bench, torque,\n        temperatures, loads, limits, rig calibration, the camera-link monitor (auto_calibration), safety flags\n        (calibration_ok, thermal_lockout, busy), and how the session-start park went (session_reset). Call it first:\n        as a session's first call it runs that park; after that it only reads.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "title": "arm_statusArguments"
+      }
+    },
+    {
+      "name": "move_joints",
+      "description": "Move joints to absolute targets, e.g. {\"elbow_flex\": -10, \"gripper\": 50}. Joints: shoulder_pan,\n        shoulder_lift, elbow_flex, wrist_flex, wrist_roll (degrees), gripper (opening %). Out-of-range targets,\n        moves passing near the bench and poses too stretched out for the shoulder to lift are refused, never clamped\n        (arm_status lists the limits).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "targets": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Targets",
+            "type": "object"
+          },
+          "speed_deg_s": {
+            "default": 20,
+            "title": "Speed Deg S",
+            "type": "number"
+          }
+        },
+        "required": [
+          "targets"
+        ],
+        "title": "move_jointsArguments"
+      }
+    },
+    {
+      "name": "move_to",
+      "description": "Move the gripper TCP along a straight line to a base-frame point (mm). The whole line is solved before\n        anything moves; a line that needs an IK branch flip, passes near the bench or ends too stretched out for the\n        shoulder to lift is refused. jaws_down turns the jaws toward straight down along the way, without twisting\n        them (wrist_roll is kept): the wrist reaches straight down only low over the bench (on this arm from about\n        4 cm up, 20-30 cm out), so higher up the jaws stay tilted as near down as it goes, and the receipt's notes\n        say by how much (jaw_axis [0, 0, -1] = straight down); descending with jaws_down straightens them.\n        status off_target = joints stopped inside their deadband short of the point.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "x_mm": {
+            "title": "X Mm",
+            "type": "number"
+          },
+          "y_mm": {
+            "title": "Y Mm",
+            "type": "number"
+          },
+          "z_mm": {
+            "title": "Z Mm",
+            "type": "number"
+          },
+          "jaws_down": {
+            "default": false,
+            "title": "Jaws Down",
+            "type": "boolean"
+          },
+          "speed_deg_s": {
+            "default": 20,
+            "title": "Speed Deg S",
+            "type": "number"
+          },
+          "tol_mm": {
+            "default": 10,
+            "title": "Tol Mm",
+            "type": "number"
+          }
+        },
+        "required": [
+          "x_mm",
+          "y_mm",
+          "z_mm"
+        ],
+        "title": "move_toArguments"
+      }
+    },
+    {
+      "name": "move_by",
+      "description": "Move the gripper TCP by a base-frame offset (mm): +z is up, away from the bench. jaws_down as in move_to.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "dx_mm": {
+            "title": "Dx Mm",
+            "type": "number"
+          },
+          "dy_mm": {
+            "title": "Dy Mm",
+            "type": "number"
+          },
+          "dz_mm": {
+            "title": "Dz Mm",
+            "type": "number"
+          },
+          "jaws_down": {
+            "default": false,
+            "title": "Jaws Down",
+            "type": "boolean"
+          },
+          "speed_deg_s": {
+            "default": 20,
+            "title": "Speed Deg S",
+            "type": "number"
+          },
+          "tol_mm": {
+            "default": 10,
+            "title": "Tol Mm",
+            "type": "number"
+          }
+        },
+        "required": [
+          "dx_mm",
+          "dy_mm",
+          "dz_mm"
+        ],
+        "title": "move_byArguments"
+      }
+    },
+    {
+      "name": "set_gripper",
+      "description": "Open or close the jaws to an opening percent (0 = empty jaws closed, 100 = fully open).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "opening_pct": {
+            "title": "Opening Pct",
+            "type": "number"
+          },
+          "speed_deg_s": {
+            "default": 30,
+            "title": "Speed Deg S",
+            "type": "number"
+          }
+        },
+        "required": [
+          "opening_pct"
+        ],
+        "title": "set_gripperArguments"
+      }
+    },
+    {
+      "name": "grasp",
+      "description": "Close slowly until the jaws stall on an object, then squeeze a fixed margin past the stall.\n        held=false means the jaws closed on nothing or the object slipped.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "title": "graspArguments"
+      }
+    },
+    {
+      "name": "stop",
+      "description": "Halt any running motion now and hold position (torque stays on).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "title": "stopArguments"
+      }
+    },
+    {
+      "name": "release_torque",
+      "description": "Turn torque off. 'all' lets the arm fall, 'gripper' drops what the jaws hold: requires confirm=true.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "which": {
+            "default": "gripper",
+            "enum": [
+              "gripper",
+              "all"
+            ],
+            "title": "Which",
+            "type": "string"
+          },
+          "confirm": {
+            "default": false,
+            "title": "Confirm",
+            "type": "boolean"
+          }
+        },
+        "title": "release_torqueArguments"
+      }
+    },
+    {
+      "name": "park",
+      "description": "Move to the configured low-load rest pose (to cool down or finish).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "title": "parkArguments"
+      }
+    },
+    {
+      "name": "look",
+      "description": "A JPEG from the depth camera (gemini) or the wrist camera. annotate: the tracked marker (magenta) and the\n        last find_objects results (yellow, with ids). grid: pixel grid labelled in full-frame coordinates, for\n        picking a pixel to pass to locate_point.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "camera": {
+            "default": "gemini",
+            "enum": [
+              "gemini",
+              "wrist"
+            ],
+            "title": "Camera",
+            "type": "string"
+          },
+          "annotate": {
+            "default": true,
+            "title": "Annotate",
+            "type": "boolean"
+          },
+          "grid": {
+            "default": false,
+            "title": "Grid",
+            "type": "boolean"
+          }
+        },
+        "title": "lookArguments"
+      }
+    },
+    {
+      "name": "find_objects",
+      "description": "Everything standing on the bench within reach, largest first: top centre (camera and base frame), an\n        approach point above it for move_to, height, footprint, radius when the top is round, image box and colour.\n        The arm's own body is masked out when the rig calibration is valid. look() then draws the ids.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "min_height_mm": {
+            "default": 8,
+            "title": "Min Height Mm",
+            "type": "number"
+          },
+          "max_height_mm": {
+            "default": 300,
+            "title": "Max Height Mm",
+            "type": "number"
+          }
+        },
+        "title": "find_objectsArguments"
+      }
+    },
+    {
+      "name": "locate_point",
+      "description": "The 3D point behind an image pixel (full 1280x720 frame, see look(grid=true)), in camera and base frame,\n        and its height above the bench. Without depth at that pixel the ray is intersected with the bench plane.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "u_px": {
+            "title": "U Px",
+            "type": "number"
+          },
+          "v_px": {
+            "title": "V Px",
+            "type": "number"
+          }
+        },
+        "required": [
+          "u_px",
+          "v_px"
+        ],
+        "title": "locate_pointArguments"
+      }
+    },
+    {
+      "name": "find_marker",
+      "description": "Lock onto the coloured tape on the gripper (OpenCV hue 0..179; default blue tape; min_value = brightness\n        floor 0..255, lower it for dark tape or a dim room). With\n        confirm_by_motion the arm lifts 15 mm and returns, and only the blob that moved with it is accepted, so a\n        same-coloured object elsewhere cannot be mistaken for the gripper.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "hue_low": {
+            "default": 100,
+            "title": "Hue Low",
+            "type": "integer"
+          },
+          "hue_high": {
+            "default": 125,
+            "title": "Hue High",
+            "type": "integer"
+          },
+          "min_saturation": {
+            "default": 70,
+            "title": "Min Saturation",
+            "type": "integer"
+          },
+          "near_mm": {
+            "default": 200,
+            "title": "Near Mm",
+            "type": "number"
+          },
+          "far_mm": {
+            "default": 650,
+            "title": "Far Mm",
+            "type": "number"
+          },
+          "confirm_by_motion": {
+            "default": true,
+            "title": "Confirm By Motion",
+            "type": "boolean"
+          },
+          "min_value": {
+            "default": 65,
+            "title": "Min Value",
+            "type": "integer"
+          }
+        },
+        "title": "find_markerArguments"
+      }
+    },
+    {
+      "name": "servo_to",
+      "description": "Closed loop: move the arm until the locked marker (find_marker first) sits at a camera-frame point.\n        The first call probes +-20 mm per axis to learn how the arm moves in the image; later calls reuse that.\n        status budget = time ran out, call again; resolution_floor = stiction stops further gains.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "x_cam_mm": {
+            "title": "X Cam Mm",
+            "type": "number"
+          },
+          "y_cam_mm": {
+            "title": "Y Cam Mm",
+            "type": "number"
+          },
+          "z_cam_mm": {
+            "title": "Z Cam Mm",
+            "type": "number"
+          },
+          "tol_mm": {
+            "default": 5,
+            "title": "Tol Mm",
+            "type": "number"
+          },
+          "max_seconds": {
+            "default": 40,
+            "title": "Max Seconds",
+            "type": "number"
+          },
+          "jaws_down": {
+            "default": false,
+            "title": "Jaws Down",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "x_cam_mm",
+          "y_cam_mm",
+          "z_cam_mm"
+        ],
+        "title": "servo_toArguments"
+      }
+    },
+    {
+      "name": "calibrate_camera",
+      "description": "Re-measure the camera pose after the camera was moved or bumped (frame_note says so). Parks, closes a\n        wide-open gripper to 20 %, locks the marker by moving it, then moves the arm through ~14 poses around the rest\n        pose (~1.5 min); keeps the arm's\n        joint offsets, the marker on the gripper and the bench height, saves a new versioned rig calibration and uses\n        it at once. The arm ends parked. Requires confirm=true.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "confirm": {
+            "default": false,
+            "title": "Confirm",
+            "type": "boolean"
+          }
+        },
+        "title": "calibrate_cameraArguments"
+      }
+    },
+    {
+      "name": "calibrate_rig",
+      "description": "Full calibration: the arm's joint offsets, the marker on the gripper and the camera pose, from ~45 poses in\n        three widening stages around the rest pose plus 8 with the jaws down near the bench, 6-11 cm over it and\n        23-30 cm out (~6 min). Needed after the motors were recalibrated or the marker\n        tape moved; when only the camera moved, calibrate_camera is quicker. Parks, closes a wide-open gripper to 20 %,\n        locks the marker by moving it, sweeps, and refuses a fit that predicts held-out poses worse than 12 mm (the old\n        calibration then stays).\n        Saves a versioned rig calibration and uses it at once. Requires confirm=true and a clear space around the arm.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "confirm": {
+            "default": false,
+            "title": "Confirm",
+            "type": "boolean"
+          }
+        },
+        "title": "calibrate_rigArguments"
+      }
+    },
+    {
+      "name": "auto_calibration",
+      "description": "The camera-link monitor (on by default; it never moves the arm unless sweep is armed). Whenever the arm\n        rests somewhere new it compares where the camera sees the gripper marker with where the calibration puts it:\n        state ok, suspect (base-frame points carry a note) or stale (the camera moved: base-frame points withheld).\n        Every period_s (default 60) it re-solves the camera pose from those rests, camera only, and adopts it when\n        clearly better. sweep=true lets it run calibrate_camera by itself when stale, after 2 min without tool calls,\n        with empty jaws. Omitted arguments keep their value; returns the status.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Enabled"
+          },
+          "period_s": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Period S"
+          },
+          "sweep": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Sweep"
+          }
+        },
+        "title": "auto_calibrationArguments"
+      }
+    }
+  ],
+  "replies": {
+    "release_torque_unconfirmed": "Error executing tool release_torque: ArmError: releasing all drops the arm: call again with confirm=true once that is safe",
+    "look_png_base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+  }
+}

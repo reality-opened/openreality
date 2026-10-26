@@ -25,6 +25,7 @@ _For each: **responsibility** · **entry points** · **where it lives** · **key
 - **Tool registration**: `src/toolkit.ts`, `src/services/mcp.ts`
 - **Vendored wire contract**: `vendor/protocol/`, a pinned copy of `web/packages/protocol`. _Explain the sync procedure._
 - **Tool groups (plugins)**: `src/plugins/{workspace,scene,agent,export,resources}.ts`
+- **Hardware bridge**: `src/hardware.ts` (the `hardware.json` device list), `src/plugins/hardware.ts` (one plugin fiber per device: starts the device's MCP server and forwards its tools as `<device>_*`), `src/jsonschema.ts` (device argument schemas to zod)
 - **Scene card**: `src/card.ts`
 - **Skills shipped with the package**: `skills/`
 - **Simulator**: `simulator/`
