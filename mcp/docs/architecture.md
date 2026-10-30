@@ -14,31 +14,18 @@ reference; open them when you need them.** Unfamiliar words are defined in
 
 ## 1. What this package does
 
-The [Model Context Protocol](https://modelcontextprotocol.io) (MCP) is a
-standard way for an AI assistant to call tools that live outside it. An MCP
-**server** is a program that offers tools; an MCP **client** (Claude Code,
-Claude Desktop, Codex, Cursor) starts the server and lets the model call them.
-
-`openreality-mcp` is an MCP server, published on npm, that offers an Open
-Reality account as tools: upload a video, wait for it to become a 3D scene,
-measure it, plan a path through it, ask the scene agent about it, and export it
-for robot training. The **scene agent** is an AI assistant that runs on the
-server, with its own scene tools and a spending cap.
-
-The package is a **thin typed client**. It runs on your own machine as a child
-process of your MCP client and talks to it over stdio (standard input and
-output). All real work happens on the Open Reality **broker**, the web server
-in [`../../server`](../../server), which the package reaches over HTTPS. The
-package itself stores nothing except your credentials, a **sync cursor** (a
-note of which scenes this machine has already seen), and files you explicitly
-download.
-
-One rule runs through everything: every number travels with its units and its
-source, and is never converted. The rest of this doc calls this the **honesty
-rule**. A length is in metres only when the server says so.
-
-The package can also bridge **hardware**, such as a robot arm with its own MCP
-server; see [section 4](#4-other-components).
+`openreality-mcp` is an MCP server, published on npm, that gives a coding agent
+tools to upload a video, wait for it to become a 3D scene, query that scene
+(measure it, plan paths through it, ask the server's scene agent about it) and
+export it for robot training. MCP (the
+[Model Context Protocol](https://modelcontextprotocol.io)) is a standard way
+for an AI assistant to call tools that live outside it. The package is a thin
+typed client: it runs on your machine, started by your MCP client over stdio
+(standard input and output), and sends every call to the Open Reality server
+API, the **broker** in [`../../server`](../../server), where all real work
+happens. It supports Claude Code, Codex and Cursor, which run
+`npx -y openreality-mcp serve`, and the Claude Desktop extension, which runs
+its bundled `node dist/cli.js serve`. All of them share one sign-in.
 
 How each client installs it (full steps in the README):
 
@@ -48,10 +35,6 @@ How each client installs it (full steps in the README):
 | Claude Desktop | one-click `.mcpb` extension file | [Install: Claude desktop](../README.md#install-claude-desktop) |
 | Codex | `codex mcp add` or `~/.codex/config.toml` | [Install: Codex](../README.md#install-codex) |
 | Cursor | deeplink or `mcp.json` | [Install: Cursor](../README.md#install-cursor) |
-
-Claude Code, Codex and Cursor run `npx -y openreality-mcp serve`. The Claude
-Desktop extension runs its own bundled copy, `node dist/cli.js serve`
-(see `manifest.json`). All of them share one sign-in.
 
 ## 2. Key components
 
@@ -87,7 +70,8 @@ The `DEMO_*` names are older spellings that deployed systems still send. They
 are a **persisted contract**: never rename or remove them.
 
 The state folder holds `credentials.json` (written with file mode 0600, so only
-you can read it), `state.json` (the sync cursor), the `artifacts/` folder, and
+you can read it), `state.json` (the sync cursor: which scenes this machine has already seen),
+the `artifacts/` folder, and
 the optional `hardware.json`.
 
 ### Login and session
@@ -279,7 +263,8 @@ with [`src/unzip.ts:extractZip`](../src/unzip.ts) and returns the path to
 
 [`skills/openreality/SKILL.md`](../skills/openreality/SKILL.md) ships in the
 npm package. It teaches an agent the workflow (sync, card, act), which tools
-cost money, and the honesty rule.
+cost money, and the honesty rule for numbers (units and source always
+reported, never converted; see section 3).
 
 ### Other components (see section 4)
 
@@ -322,6 +307,10 @@ to the model. Hardware, when configured, is a second, separate path to a
 device server on the same machine.
 
 ### One tool call: `scene_measure_distance`
+
+One rule runs through every call: every number travels with its units and its
+source, and is never converted. The rest of this doc calls this the **honesty
+rule**. A length is in metres only when the server says so.
 
 ```mermaid
 sequenceDiagram
@@ -411,7 +400,8 @@ sequenceDiagram
 ### Scene sync
 
 There is no download of your scans. The account on the broker is the sync
-layer; the sync cursor only remembers which scene IDs this machine has seen.
+layer. The package keeps only a **sync cursor**: a note in `state.json` of
+which scene IDs this machine has already seen.
 
 ```mermaid
 sequenceDiagram
@@ -441,6 +431,10 @@ return `{path, bytes, content_type}`. `artifact_fetch_splat` and
 unpacks its zip and returns the path to `scene.xml`.
 
 ### What the agent does with the tools
+
+The diagram shows the usual order. The middle lane, the **scene agent**, is an
+AI assistant that runs on the server, with its own scene tools and a spending
+cap.
 
 ```mermaid
 flowchart TD
